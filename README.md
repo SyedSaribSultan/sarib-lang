@@ -43,12 +43,22 @@ python3 tests/run_corpus.py    # conformance
 
 **VS Code:** `editors/vscode-sarib/` ships syntax highlighting plus a live preview panel (`Ctrl+Shift+V`, re-renders as you type — it pipes the buffer through `tools/preview.py`, so editor and CLI can never disagree). Install the prebuilt `.vsix` from Releases, or build it yourself: `npx @vscode/vsce package && code --install-extension vscode-sarib-0.2.0.vsix`.
 
-**Agent-native:** run the MCP server and your agent gets `sarib_query / sarib_apply / sarib_render / sarib_validate / sarib_canon` over any folder of `.sarib` files:
+**Agent-native:** the MCP server gives any MCP client (Claude Desktop, Claude Code, Cursor, …) five tools over a folder of `.sarib` files: `sarib_query / sarib_apply / sarib_render / sarib_validate / sarib_canon`. Setup:
+
+```bash
+pip install mcp        # the server's only dependency (the core has none)
+```
+
+Then register it with your client (Claude Desktop: `claude_desktop_config.json`; Claude Code: a project `.mcp.json`):
 
 ```json
-{ "mcpServers": { "sarib": { "command": "python",
-    "args": ["-m", "sarib.mcp_server", "<your-knowledge-dir>"], "cwd": "<repo>/impl" } } }
+{ "mcpServers": { "sarib": {
+    "command": "python",
+    "args": ["-m", "sarib.mcp_server", "<folder-of-.sarib-files>"],
+    "env": { "PYTHONPATH": "<repo>/impl", "PYTHONUTF8": "1" } } } }
 ```
+
+Restart the client, approve the server, and just talk: *"which tasks are open?"* runs a bounded query; *"mark t1 done"* applies one id-addressed op — the file changes by a delta, never a rewrite.
 
 ## The design, in five commitments
 
