@@ -12,6 +12,8 @@ def _load(path):
 
 
 def main(argv=None):
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # piped output on Windows defaults to cp1252
     ap = argparse.ArgumentParser(prog="sarib", description=".sarib reference CLI v0.1")
     sub = ap.add_subparsers(dest="cmd", required=True)
     for c in ("parse", "validate", "canon", "fmt"):
