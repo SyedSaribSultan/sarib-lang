@@ -1,0 +1,95 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "sarib",
+  "scopeName": "text.html.markdown.sarib",
+  "comment": "sarib = Markdown + typed marks. Injects sarib patterns, then includes all of Markdown.",
+  "patterns": [
+    { "include": "#sarib-frontmatter" },
+    { "include": "#sarib-typed-edge" },
+    { "include": "#sarib-wikilink" },
+    { "include": "#sarib-attrs" },
+    { "include": "#sarib-blockid" },
+    { "include": "#sarib-field" },
+    { "include": "text.html.markdown" }
+  ],
+  "repository": {
+    "sarib-frontmatter": {
+      "comment": "YAML front matter fenced by --- at top of file",
+      "begin": "\\A(-{3})\\s*$",
+      "end": "^(-{3})\\s*$",
+      "beginCaptures": { "1": { "name": "punctuation.definition.sarib.frontmatter" } },
+      "endCaptures": { "1": { "name": "punctuation.definition.sarib.frontmatter" } },
+      "name": "meta.embedded.block.frontmatter.sarib",
+      "patterns": [
+        {
+          "match": "^([A-Za-z][\\w-]*)(:)\\s*(.*)$",
+          "captures": {
+            "1": { "name": "entity.name.tag.sarib" },
+            "2": { "name": "punctuation.separator.key-value.sarib" },
+            "3": { "name": "string.unquoted.sarib" }
+          }
+        }
+      ]
+    },
+    "sarib-typed-edge": {
+      "comment": "[relation:: [[Target]]] — a typed edge embedded in prose",
+      "match": "(\\[)([A-Za-z][\\w-]*)(::)\\s*(\\[\\[)([^\\[\\]]+)(\\]\\])(\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.sarib.edge" },
+        "2": { "name": "keyword.control.sarib.relation" },
+        "3": { "name": "punctuation.separator.sarib.field" },
+        "4": { "name": "punctuation.definition.sarib.link" },
+        "5": { "name": "markup.underline.link.sarib.target" },
+        "6": { "name": "punctuation.definition.sarib.link" },
+        "7": { "name": "punctuation.definition.sarib.edge" }
+      }
+    },
+    "sarib-wikilink": {
+      "comment": "[[Target]] or [[Target#anchor]] — a plain reference",
+      "match": "(\\[\\[)([^\\[\\]#]+)(#[^\\[\\]]+)?(\\]\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.sarib.link" },
+        "2": { "name": "markup.underline.link.sarib.target" },
+        "3": { "name": "markup.underline.link.sarib.anchor" },
+        "4": { "name": "punctuation.definition.sarib.link" }
+      }
+    },
+    "sarib-attrs": {
+      "comment": "{.type #slug key=val} — attributes on a heading/item",
+      "begin": "(\\{)(?=[.#][\\w-]|[A-Za-z][\\w-]*=)",
+      "end": "(\\})",
+      "beginCaptures": { "1": { "name": "punctuation.definition.sarib.attrs" } },
+      "endCaptures": { "1": { "name": "punctuation.definition.sarib.attrs" } },
+      "name": "meta.attributes.sarib",
+      "patterns": [
+        { "match": "\\.([\\w-]+)", "name": "entity.name.type.sarib" },
+        { "match": "#([\\w-]+)", "name": "entity.other.attribute-name.id.sarib" },
+        {
+          "match": "([A-Za-z][\\w-]*)(=)(\"[^\"]*\"|[^\\s}]+)",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.sarib" },
+            "2": { "name": "punctuation.separator.sarib" },
+            "3": { "name": "string.quoted.sarib" }
+          }
+        }
+      ]
+    },
+    "sarib-blockid": {
+      "comment": "^id at end of a line — the barcode",
+      "match": "(\\s)(\\^)([\\w-]+)\\s*$",
+      "captures": {
+        "2": { "name": "punctuation.definition.sarib.blockid" },
+        "3": { "name": "constant.other.sarib.blockid" }
+      }
+    },
+    "sarib-field": {
+      "comment": "key:: value  — a property line (value not a wikilink)",
+      "match": "^(\\s*)([A-Za-z][\\w-]*)(::)\\s*(.*)$",
+      "captures": {
+        "2": { "name": "entity.name.tag.sarib.field" },
+        "3": { "name": "punctuation.separator.sarib.field" },
+        "4": { "name": "string.unquoted.sarib.value" }
+      }
+    }
+  }
+}

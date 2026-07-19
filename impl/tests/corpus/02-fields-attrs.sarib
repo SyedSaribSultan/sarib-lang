@@ -1,0 +1,6 @@
+# Plan {#plan}
+
+## Buy milk {.task} ^t1
+status:: todo
+due:: 2026-08-01
+priority:: high

@@ -1,0 +1,50 @@
+---
+sarib: 0.1
+vocab: std@0.1
+title: Q3 Planning
+---
+
+# Q3 Planning {#q3-planning}
+
+> Container summary (derived): 1 decision, 2 tasks, 1 person. Depth 3.  [skeleton/scent cue — §5, regenerated, not authored]
+
+## Decisions {.section}
+
+### Adopt the new billing provider {.decision #adopt-billing} ^d1
+status:: accepted
+rationale:: Lower fees, better API coverage.
+
+## Tasks {.section}  [0/2 done]
+
+<!-- [0/2 done] is a derived statistics cookie (org-style), a spatial-legibility cue. Not canonical. -->
+
+### Migrate invoices {.task #migrate-invoices} ^t1
+status:: todo
+due:: 2026-08-01
+priority:: high
+owner:: [[Alice]]
+
+Can't start until we [depends-on:: [[Adopt the new billing provider]]] — the provider choice gates the schema.
+
+### Notify customers {.task #notify} ^t2
+status:: todo
+
+Send only after [depends-on:: [[Migrate invoices]]] completes.
+
+## People {.section}
+
+### Alice {.agent #alice} ^p1
+kind:: person
+email:: alice@example.com
+
+<!--
+Reading notes (why this is Candidate A):
+- It is valid Markdown: open in any renderer and it reads as a normal outline. Unknown bits
+  ({.task}, key:: value, [depends-on:: [[…]]]) show as literal text — ugly but non-destructive.
+- Containment comes free from headings. Types/props/edges are optional attributes layered in.
+- Importance is a field (priority::), not typography (research: models read emphasis weakly).
+- Spatial cues ([0/2 done], the derived summary) are projections, regenerated, never hand-maintained.
+- Encodes the same knowledge (same nodes and edges) as Candidate B; both normalize to the
+  same model. (Byte-identical canonical JSON is not guaranteed across surfaces — e.g. A anchors
+  edges in prose while B uses standalone edge lines, which can differ in derived `anchor` metadata.)
+-->

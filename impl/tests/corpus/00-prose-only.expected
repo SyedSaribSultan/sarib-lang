@@ -1,0 +1,3 @@
+{"sarib":"0.1"}
+{"content":"Just a paragraph of plain prose. Nothing else.","hint":"prose","id":"n1","kind":"node","order":0}
+{"content":"A second paragraph, still valid .sarib at rung L0.","hint":"prose","id":"n2","kind":"node","order":1}

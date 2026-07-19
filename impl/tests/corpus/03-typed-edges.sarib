@@ -1,0 +1,10 @@
+# Graph
+
+## Adopt provider {.decision #adopt} ^d1
+
+## Migrate {.task} ^t1
+owner:: [[Alice]]
+
+Blocked until [depends-on:: [[Adopt provider]]] lands.
+
+## Alice {.agent} ^alice

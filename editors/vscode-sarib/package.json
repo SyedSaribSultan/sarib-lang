@@ -1,0 +1,68 @@
+{
+  "name": "vscode-sarib",
+  "displayName": "sarib",
+  "description": "Syntax highlighting for .sarib knowledge files (Markdown superset).",
+  "version": "0.2.0",
+  "publisher": "sarib",
+  "license": "MIT",
+  "engines": { "vscode": "^1.60.0" },
+  "categories": ["Programming Languages"],
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:sarib", "onCommand:sarib.preview"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "sarib.preview",
+        "title": "sarib: Open Preview",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "sarib.preview",
+          "when": "editorLangId == sarib",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "sarib.preview",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorLangId == sarib"
+      }
+    ],
+    "configuration": {
+      "title": "sarib",
+      "properties": {
+        "sarib.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Python executable used to run the previewer."
+        },
+        "sarib.previewScript": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to tools/preview.py. Leave empty to auto-detect it in the workspace folders."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "sarib",
+        "aliases": ["sarib", "Sarib"],
+        "extensions": [".sarib"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sarib",
+        "scopeName": "text.html.markdown.sarib",
+        "path": "./syntaxes/sarib.tmLanguage.json"
+      }
+    ]
+  }
+}

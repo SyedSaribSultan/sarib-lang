@@ -1,0 +1,5 @@
+{"sarib":"0.1"}
+{"hint":"heading","id":"n1","kind":"node","order":0,"title":"Lint"}
+{"content":"This mentions [[Nobody Named This]] and [needs:: [[Also Missing]]].","hint":"prose","id":"n2","kind":"node","order":0,"parent":"n1"}
+{"id":"e1","kind":"edge","source":"n2","target":"?unresolved:Also Missing","type":"needs"}
+{"id":"e2","kind":"edge","source":"n2","target":"?unresolved:Nobody Named This","type":"relates-to"}

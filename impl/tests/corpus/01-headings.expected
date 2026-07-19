@@ -1,0 +1,7 @@
+{"sarib":"0.1"}
+{"hint":"heading","id":"n1","kind":"node","order":0,"title":"Doc"}
+{"hint":"heading","id":"n2","kind":"node","order":0,"parent":"n1","title":"Section One"}
+{"content":"Some text under one.","hint":"prose","id":"n3","kind":"node","order":0,"parent":"n2"}
+{"hint":"heading","id":"n4","kind":"node","order":1,"parent":"n1","title":"Section Two"}
+{"hint":"heading","id":"n5","kind":"node","order":0,"parent":"n4","title":"Deeper"}
+{"content":"Deep text.","hint":"prose","id":"n6","kind":"node","order":0,"parent":"n5"}

@@ -1,0 +1,653 @@
+---
+sarib: 0.1
+vocab: std@0.1
+title: .sarib Risk Register
+---
+
+# Risk Register {#risk-register}
+
+## RM — Model & technical correctness {.section}
+
+### RM1: Containment/graph duality has no clean answer {.risk #rm1} ^rm1
+likelihood:: L
+impact:: H
+phase:: B (Stage 4)
+status:: resolved
+signal:: model needs two out-of-sync structures
+
+One graph; document = containment spanning-tree walked in order (D-016)
+
+### RM2: Block-granularity bet wrong — knowledge routinely needs sub-block structure {.risk #rm2} ^rm2
+likelihood:: M
+impact:: H
+phase:: reference impl
+status:: watch
+signal:: promotion is the rule, not the exception
+
+Promotion of spans to nodes on demand (Stage 4 §3.1, D-015); revisit if churn dominates
+
+### RM3: Promotion churn — agents over-promote spans → node explosion, id churn {.risk #rm3} ^rm3
+likelihood:: M
+impact:: M
+phase:: C/impl (Stage 8)
+status:: open
+signal:: node count ≫ blocks; id turnover high
+
+Promotion policy + demotion/GC of unreferenced promoted nodes (Stage 8)
+
+### RM4: Anchor stability — tracking a link's position inside an edited block reintroduces intra-text position tracking {.risk #rm4} ^rm4
+likelihood:: H
+impact:: M
+phase:: C (Stage 8/9)
+status:: open
+signal:: edits break/move anchors; merge conflicts on links
+
+Per-character identity à la CRDT for anchors; budget the metadata weight ([versioning-and-merge.md §6](../research/versioning-and-merge.md))
+
+### RM5: Entity-home "dumping ground" — auto-homed inline entities pile up {.risk #rm5} ^rm5
+likelihood:: M
+impact:: L
+phase:: B (Stage 5)
+status:: mitigated
+signal:: reserved container holds thousands of nodes
+
+Vocabularies declare canonical homes (D-023 schema); projections hide the container (P17)
+
+### RM6: Vocabulary mis-cut — v0 eight are wrong (too few/many) {.risk #rm6} ^rm6
+likelihood:: M
+impact:: M
+phase:: B→impl
+status:: mitigated
+signal:: `concept` overloaded; a kind unused
+
+Falsifiable inclusion test + additive vocab versioning (D-021, D-025)
+
+### RM7: Reference resolution surprises users (name recurs across scopes) {.risk #rm7} ^rm7
+likelihood:: M
+impact:: M
+phase:: B/D
+status:: mitigated
+signal:: wrong-node links; frequent "unresolved"
+
+Deterministic order + never-guess + diagnostics (D-024); measure ambiguity rates
+
+### RM8: Plain-text-as-truth loses to a DB at scale {.risk #rm8} ^rm8
+likelihood:: M
+impact:: H
+phase:: B/C
+status:: accepted
+signal:: query/write latency unacceptable at 100k nodes
+
+Op-log fallback to live index (R-new-1); see Watch list
+
+### RM9: Expressiveness gap — property graph can't model a needed pattern {.risk #rm9} ^rm9
+likelihood:: L
+impact:: H
+phase:: B (Stage 5)
+status:: mitigated
+signal:: recurring facts don't fit edges+qualifiers
+
+n-ary/temporal via edge qualifiers (D-020); extension mechanism (D-011) for the rest
+
+### RM10: Determinism breaks — two valid byte-forms of one model → diff churn, cache misses {.risk #rm10} ^rm10
+likelihood:: M
+impact:: H
+phase:: C (Stage 9)
+status:: resolved
+signal:: same edit yields different files across tools
+
+Canonical normal form = line-oriented canonical JSON (JCS/RFC 8785), exactly one byte-string per state (D-041)
+
+### RM19: Canonical-form recomputation cost — re-canonicalizing a large file on every change {.risk #rm19} ^rm19
+likelihood:: M
+impact:: L
+phase:: C (Stage 9)
+status:: mitigated
+signal:: serialization dominates edit latency at scale
+
+Edits run against the append-only op-log (cheap); canonicalization off-hot-path; incremental canonicalization possible (D-042)
+
+### RM20: Normalization instability — `normalize` not provably idempotent → formatting churn / diff noise {.risk #rm20} ^rm20
+likelihood:: M
+impact:: M
+phase:: D (Stage 11)
+status:: mitigated
+signal:: reformatting a file changes bytes without model change
+
+Idempotence is a conformance requirement (D-051); canonical form is the fixed point; test-corpus coverage
+
+### RM21: Live-view edit ambiguity — a coarse projection can't disambiguate the target model element {.risk #rm21} ^rm21
+likelihood:: L
+impact:: M
+phase:: D (Stage 12)
+status:: mitigated
+signal:: an edit in a summary view maps to the wrong node
+
+Every projected element carries its id (D-052); unattributable edits rejected as a diagnostic, never guessed
+
+### RM22: Reference-impl-defines-truth drift — implementers treat the reference code as the spec (Markdown's fate) {.risk #rm22} ^rm22
+likelihood:: M
+impact:: M
+phase:: E (Stage 13)
+status:: mitigated
+signal:: conforming = "matches our code," spec ignored
+
+The conformance corpus (input→expected), not the code, is the operational definition; reference impl must itself pass the corpus (D-057)
+
+### RM11: Scale — large KBs blow parse/query/memory {.risk #rm11} ^rm11
+likelihood:: M
+impact:: M
+phase:: D (Stage 12)
+status:: open
+signal:: slow load; whole-file-in-memory required
+
+Partial loading, streaming, section anchors (P6/P14); Stage 12 rendering arch
+
+### RM12: Identity collision — offline id generation collides across replicas {.risk #rm12} ^rm12
+likelihood:: L
+impact:: H
+phase:: C (Stage 9)
+status:: resolved
+signal:: duplicate ids after merge
+
+`(replica,counter)` / ULID collision-free scheme (D-014, Stage 4 §4)
+
+### RM13: Auto-merge produces valid-but-wrong result {.risk #rm13} ^rm13
+likelihood:: M
+impact:: H
+phase:: C (Stage 8)
+status:: open
+signal:: merged docs semantically corrupt, no conflict raised
+
+Node/edge-level semantic merge; conservative conflict → human review (D-014, Stage 8)
+
+### RM14: An operation violates a model invariant (two homes, dangling edge) {.risk #rm14} ^rm14
+likelihood:: M
+impact:: H
+phase:: C (Stage 8)
+status:: mitigated
+signal:: invariants (§11 Stage 4) breakable by an op sequence
+
+Op set specified closed under the 10 invariants; validation after every op (Stage 8)
+
+### RM15: Traversal determinism depends on a total order over edges {.risk #rm15} ^rm15
+likelihood:: L
+impact:: M
+phase:: B (Stage 6)
+status:: mitigated
+signal:: same traversal yields different order across tools
+
+Total tie-break cascade (D-029) grounded in totally-orderable `(replica,counter)`/ULID ids (D-014)
+
+### RM16: Filter algebra too weak — a common query can't be expressed {.risk #rm16} ^rm16
+likelihood:: M
+impact:: M
+phase:: B (Stage 7)
+status:: open
+signal:: users hit the predicate ceiling routinely
+
+Saved/composed queries + agent reasoning (AI-selected) as the escape (D-031/D-034); revisit predicate set after dogfooding
+
+### RM17: Query→operation staleness (lost update) — graph changes between read and id-addressed write {.risk #rm17} ^rm17
+likelihood:: M
+impact:: H
+phase:: C (Stage 8)
+status:: mitigated
+signal:: concurrent edits silently clobber each other
+
+Optimistic-concurrency `expect` precondition per op (version/status/value check); violated → rejected + re-query (D-038)
+
+### RM18: LWW silently drops the losing side of a concurrent same-node content/move edit {.risk #rm18} ^rm18
+likelihood:: M
+impact:: M
+phase:: C (Stage 8)
+status:: open
+signal:: a collaborator's block edit vanishes without a conflict
+
+Block-sized nodes bound blast radius; guarded ops (D-038) detect-not-lose; intra-node text CRDT deferred (RM4)
+
+## RH — Human factors & usability {.section}
+
+### RH1: Graph purity destroys writability {.risk #rh1} ^rh1
+likelihood:: M
+impact:: H
+phase:: D (Stage 10)
+status:: mitigated
+signal:: authoring feels like filling a database
+
+Prose-first; edges from prose (P3/P4); writability tests every syntax candidate
+
+### RH2: Humans won't enrich even with agent help (founding bet) {.risk #rh2} ^rh2
+likelihood:: H
+impact:: H
+phase:: reference impl
+status:: watch
+signal:: enrichment rate flat over time
+
+See Watch list (agent enrichment + per-fact payoff, D-010)
+
+### RH3: Inline typed-link gesture disrupts prose flow {.risk #rh3} ^rh3
+likelihood:: M
+impact:: M
+phase:: D (Stage 10)
+status:: watch
+signal:: authors avoid links; prefer plain text
+
+Writability testing (Stage 10); block-form fallback; D-012 reversal condition armed
+
+### RH4: Cognitive overload — too many kinds/edges to remember {.risk #rh4} ^rh4
+likelihood:: L
+impact:: M
+phase:: D
+status:: mitigated
+signal:: users can't recall the vocabulary
+
+Thin core, 8 kinds, progressive ladder (D-018, P9)
+
+### RH5: Dialect/canonical split confuses users {.risk #rh5} ^rh5
+likelihood:: M
+impact:: M
+phase:: D (Stage 9/10)
+status:: watch
+signal:: users surprised by normalization
+
+gofmt-style invisible normalization; one obvious canonical form (D-003)
+
+### RH6: IDs/slugs leak into human view and get mis-edited {.risk #rh6} ^rh6
+likelihood:: M
+impact:: M
+phase:: D
+status:: mitigated
+signal:: users hand-edit ids and break links
+
+Tooling hides ids; slugs quarantined; names are the human handle (D-009)
+
+### RH7: Agent enrichment the human didn't intend erodes trust {.risk #rh7} ^rh7
+likelihood:: M
+impact:: H
+phase:: impl
+status:: mitigated
+signal:: users disable enrichment; distrust the graph
+
+Provenance segregation (`inferred` vs `asserted`, D-019); human-confirm loop
+
+### RH8: Attribute/inline-field ceremony (`{.task}`, `key::`) still feels like filling a database {.risk #rh8} ^rh8
+likelihood:: M
+impact:: M
+phase:: D (Stage 10)
+status:: open
+signal:: authors write plain prose, skip all structure
+
+Everything optional (L0 prose valid); agent adds most structure (D-010); test hand-authoring cost; Candidate A minimizes marks
+
+## RA — AI / LLM-specific {.section}
+
+### RA1: LLMs can't reliably read/write .sarib {.risk #ra1} ^ra1
+likelihood:: M
+impact:: H
+phase:: impl
+status:: watch
+signal:: round-trip/edit accuracy poor across models
+
+Markdown-superset in-distribution (P6); .sarib⇄JSON for structured output
+
+### RA2: Doesn't beat Markdown on accuracy/tokens {.risk #ra2} ^ra2
+likelihood:: M
+impact:: H
+phase:: pre-freeze
+status:: watch
+signal:: benchmarks flat vs Markdown
+
+Interaction-efficiency thesis (D-002); measure (Rule 6)
+
+### RA3: Format drifts out of pretraining distribution as it enriches {.risk #ra3} ^ra3
+likelihood:: M
+impact:: M
+phase:: D
+status:: open
+signal:: richer constructs parse worse than prose
+
+Keep surface Markdown-valid; quarantine extensions (P6/D-011)
+
+### RA4: KV-cache benefits don't materialize (top-of-file churn) {.risk #ra4} ^ra4
+likelihood:: M
+impact:: M
+phase:: C (Stage 9)
+status:: mitigated
+signal:: cache-hit rate low in agent loops
+
+Append-only, deterministic order, stable prefix (P14)
+
+### RA5: Derived-relation query cost too high → tempts materialization {.risk #ra5} ^ra5
+likelihood:: M
+impact:: M
+phase:: B (Stage 6)
+status:: mitigated
+signal:: transitive-closure queries slow on big graphs
+
+Mandatory traversal bounds (D-028) cap closure cost; provenance-marked caches (D-022)
+
+### RA9: "Semantic traversal" wants an embedding signal not in the model → non-deterministic across tools {.risk #ra9} ^ra9
+likelihood:: M
+impact:: M
+phase:: B (Stage 6)
+status:: open
+signal:: semantic-walk results differ per tool/model
+
+Canonical form follows explicit semantic edges (`relates-to`/`refines`/`tag`) deterministically; embedding-ranked variant is explicitly non-canonical, tool-provided (D-026/D-029)
+
+### RA10: Token-economy win shrinks for large-content nodes (`set-content` replaces whole node) {.risk #ra10} ^ra10
+likelihood:: M
+impact:: L
+phase:: C (Stage 8)
+status:: mitigated
+signal:: big prose nodes cost content-sized edits
+
+Keep nodes block-sized; intra-node splicing later (RM4); still ≪ document regeneration (D-002)
+
+### RA11: Surface glyph tokenization unverified — chosen multi-char sigils (`::`,`[[`,`{#`,`^`) may fragment into many tokens {.risk #ra11} ^ra11
+likelihood:: L
+impact:: M
+phase:: D (Stage 10)
+status:: mitigated
+signal:: grammar sigils cost more tokens than assumed
+
+**Measured 2026-07-19** (`bench/tokenizer-report.md`): all load-bearing sigils single-token on o200k/cl100k/r50k; `{.`/`{#` = 2 (acceptable); B saves 26.9% whole-file vs A. Residual: re-run on open-weight tokenizers before freeze (G8)
+
+### RA6: Model-version drift — tuned for 2026 models, degrades later {.risk #ra6} ^ra6
+likelihood:: M
+impact:: M
+phase:: ongoing
+status:: mitigated
+signal:: new model gen parses format worse
+
+Don't optimize vs tokenizers (D-002); ride durable distribution, not quirks
+
+### RA7: Agent inference pollutes graph despite provenance {.risk #ra7} ^ra7
+likelihood:: M
+impact:: H
+phase:: impl
+status:: mitigated
+signal:: inferred facts read as asserted
+
+Agent writes = `inferred` by default; enforce assertion class (D-019)
+
+### RA8: Legacy-prose enrichment cost (bulk extraction still expensive) {.risk #ra8} ^ra8
+likelihood:: M
+impact:: M
+phase:: impl
+status:: accepted
+signal:: onboarding old corpora is slow/costly
+
+Claim is *incremental write-time* structure, not bulk extraction; defer à la LazyGraphRAG ([ai-context.md](../research/ai-context.md))
+
+## RD — Adoption & distribution {.section}
+
+### RD1: Technically sound, socially dead {.risk #rd1} ^rd1
+likelihood:: M
+impact:: H
+phase:: post-v1
+status:: watch
+signal:: no one emits .sarib
+
+Carrier thesis (P6); ship consumers not just spec
+
+### RD2: No consumer ships with v1 → dead letter {.risk #rd2} ^rd2
+likelihood:: M
+impact:: H
+phase:: E (Stage 13)
+status:: open
+signal:: v1.0 has spec but no reader/writer
+
+Reference MCP/CLI consumer is a v0.1 gate (S8)
+
+### RD3: Markdown-superset constraint blocks a needed feature {.risk #rd3} ^rd3
+likelihood:: M
+impact:: M
+phase:: D
+status:: mitigated
+signal:: a feature can't be expressed in valid Markdown
+
+Extension mechanism (D-011); accept demotion to extension layer (D-006 reversal armed)
+
+### RD4: A competing standard wins first (vendor blesses another format) {.risk #rd4} ^rd4
+likelihood:: M
+impact:: H
+phase:: ongoing
+status:: watch
+signal:: a major agent stack standardizes elsewhere
+
+Be a superset/interop layer, not a rival; move fast to reference impl; embeddable
+
+### RD5: Network effects never start (chicken-and-egg) {.risk #rd5} ^rd5
+likelihood:: M
+impact:: H
+phase:: post-v1
+status:: mitigated
+signal:: no tools ⇒ no files ⇒ no tools
+
+Single guaranteed consumer = the user's own agent; per-file payoff (RH2 mitigation)
+
+### RD6: JSON-as-the-format temptation — adopters treat the JSON interchange as *the* format, skipping the human surface {.risk #rd6} ^rd6
+likelihood:: M
+impact:: M
+phase:: D→post-v1
+status:: open
+signal:: ecosystem emits/edits JSON, human surface unused
+
+Canonical/interchange JSON is machine-only; Phase D delivers the pleasant author surface; position JSON as wire/at-rest, never what humans write (D-040)
+
+## RG — Governance & ecosystem {.section}
+
+### RG1: Governance vacuum / BDFL problem (the Markdown–CommonMark war) {.risk #rg1} ^rg1
+likelihood:: M
+impact:: H
+phase:: E
+status:: open
+signal:: forks because no legitimate extension path
+
+Explicit constitution at birth: who extends, what "conforming" means (P16; Stage 13+)
+
+### RG2: Spec ambiguity → divergent parsers (Markdown's fate) {.risk #rg2} ^rg2
+likelihood:: M
+impact:: H
+phase:: D/E
+status:: open
+signal:: same file, different parses across tools
+
+Spec + conformance test suite from v0.1 (S6, P15/P16)
+
+### RG3: Flavor fragmentation despite extension mechanism {.risk #rg3} ^rg3
+likelihood:: M
+impact:: M
+phase:: post-v1
+status:: mitigated
+signal:: incompatible core extensions proliferate
+
+Frozen core + self-announcing extensions + conformance brand (D-011, P16)
+
+### RG4: Vocabulary fragmentation — competing community vocabularies {.risk #rg4} ^rg4
+likelihood:: M
+impact:: M
+phase:: post-v1
+status:: mitigated
+signal:: three rival `task` vocabularies
+
+Blessed standard library + namespacing + registry (D-021, D-025; Stage 13+)
+
+### RG5: Extension namespace squatting / collision {.risk #rg5} ^rg5
+likelihood:: L
+impact:: M
+phase:: post-v1
+status:: open
+signal:: prefix clashes between vendors
+
+Namespace registry; registered/reverse-DNS prefixes (D-025)
+
+### RG6: Vendor capture (embrace-extend-extinguish) {.risk #rg6} ^rg6
+likelihood:: L
+impact:: H
+phase:: post-v1
+status:: open
+signal:: a platform ships an incompatible ".sarib+"
+
+Open standard, permissive license, multi-implementer conformance (Stage 14/15)
+
+## RL — Longevity & future-proofing {.section}
+
+### RL1: Spec bloat over time violates the business-card target (S6) {.risk #rl1} ^rl1
+likelihood:: M
+impact:: M
+phase:: E→post-v1
+status:: mitigated
+signal:: core grammar keeps growing
+
+Freeze core; push features to vocab/extension; priority rule 4 (P16)
+
+### RL2: Frozen core has a latent fatal flaw found post-freeze {.risk #rl2} ^rl2
+likelihood:: M
+impact:: H
+phase:: post-freeze
+status:: open
+signal:: a common need is unrepresentable, no compat fix
+
+Long critique cycles + reference impl + benchmarks *before* freeze; defined v2 migration story
+
+### RL3: Dependency on transient tech (tokenizer, model API, a CRDT lib) {.risk #rl3} ^rl3
+likelihood:: L
+impact:: M
+phase:: ongoing
+status:: mitigated
+signal:: format tied to one vendor's runtime
+
+Model-agnostic (D-002); substrate = plain UTF-8 + git, not reinvented (L0)
+
+### RL4: Project outlives / loses its maintainers {.risk #rl4} ^rl4
+likelihood:: M
+impact:: M
+phase:: post-v1
+status:: open
+signal:: bus factor = 1; no independent impls
+
+Self-hosting spec + conformance suite → independently implementable in a weekend (S6, RL4)
+
+### RL5: The AI-native premise itself dates (context/tokenization paradigm shifts) {.risk #rl5} ^rl5
+likelihood:: L
+impact:: H
+phase:: 5–10 yr
+status:: accepted
+signal:: agent architectures make the format's rationale moot
+
+Hedge on durable value (human-readable plain-text graph) that survives even if AI specifics change
+
+## RS — Security & safety {.section}
+
+### RS1: Code execution / unsafe load (YAML tag-constructor RCE fate) {.risk #rs1} ^rs1
+likelihood:: L
+impact:: H
+phase:: C/D
+status:: mitigated
+signal:: any construct triggers evaluation on load
+
+Pure-data load, no executable directives (D-043)
+
+### RS2: Expansion DoS — transclusion cycles / billion-laughs (YAML→K8s CVE) {.risk #rs2} ^rs2
+likelihood:: M
+impact:: H
+phase:: C (Stage 9)
+status:: mitigated
+signal:: a small file expands unboundedly
+
+Acyclic transclusion + cycle-detection + depth/size bound on resolution (D-043)
+
+### RS3: Prompt injection via .sarib content (a file that instructs the reading agent) {.risk #rs3} ^rs3
+likelihood:: H
+impact:: H
+phase:: impl
+status:: open
+signal:: file content steers an agent's behavior
+
+Content is data, not instructions; agents treat .sarib as untrusted; no smuggled parser/model directives (Crockford-comments lesson, [standards-adoption.md](../research/standards-adoption.md))
+
+### RS4: Provenance spoofing — forged `asserted-by`/human-claim {.risk #rs4} ^rs4
+likelihood:: M
+impact:: M
+phase:: post-v1
+status:: open
+signal:: in-file provenance trusted as proof
+
+Provenance is a *claim*, not proof; optional cryptographic signing as a companion spec; don't over-trust
+
+### RS5: Reference-resolution exploit — engineered name collision redirects a link {.risk #rs5} ^rs5
+likelihood:: L
+impact:: M
+phase:: D
+status:: mitigated
+signal:: link resolves to attacker-controlled node
+
+Deterministic nearest-scope (D-024); explicit ids for sensitive refs; ambiguity diagnostics
+
+### RS6: Canonicalization attacks — byte-forms that hash differently but mean the same {.risk #rs6} ^rs6
+likelihood:: L
+impact:: M
+phase:: C (Stage 9)
+status:: mitigated
+signal:: signing/dedup inconsistent
+
+Canonical form + canonicalizer rejects ambiguous encodings (dup keys/non-NFC/non-canonical numbers) (D-041/D-043)
+
+## RP — Process & project {.section}
+
+### RP1: Rediscovering RDF badly {.risk #rp1} ^rp1
+likelihood:: M
+impact:: H
+phase:: A (Stage 2)
+status:: mitigated
+signal:: model converges on triples + ceremony
+
+RDF-delta analysis done; kill-criterion (Rule 5) evaluated — no pivot needed (Stage 2 §3)
+
+### RP2: Boil-the-ocean scope {.risk #rp2} ^rp2
+likelihood:: H
+impact:: M
+phase:: ongoing
+status:: mitigated
+signal:: stages sprawl; no v1 boundary
+
+v1 scope cap: core + op vocab + 3 projections; phase gates (charter)
+
+### RP3: Efficiency claims unmeasured {.risk #rp3} ^rp3
+likelihood:: M
+impact:: H
+phase:: pre-freeze
+status:: open
+signal:: "token efficient" asserted, never benchmarked
+
+Benchmark harness before spec freeze (Rule 6; S2/S4/S7)
+
+### RP4: Decisions accumulate contradictions (25+ entries) {.risk #rp4} ^rp4
+likelihood:: M
+impact:: M
+phase:: ongoing
+status:: mitigated
+signal:: a new decision silently conflicts with an old one
+
+Critique-first (Rule 1); reversal conditions; per-stage verification; priority order (Stage 3 §4)
+
+### RP5: Analysis paralysis / never shipping {.risk #rp5} ^rp5
+likelihood:: M
+impact:: H
+phase:: C→E
+status:: open
+signal:: endless refinement, no reference impl
+
+Staged exit criteria; v1.0 is a defined endpoint (Stage 15); build reference impl in Phase E
+
+### RP6: Resource/continuity interruption (credit limits, session loss) {.risk #rp6} ^rp6
+likelihood:: H
+impact:: L
+phase:: ongoing
+status:: mitigated
+signal:: a session ends mid-stage (has happened)
+
+Everything persisted to repo; README session log = resume point; self-contained stages

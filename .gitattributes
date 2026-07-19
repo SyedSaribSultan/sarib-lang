@@ -1,0 +1,8 @@
+# Canonical forms and corpus expectations are byte-exact (G6); never rewrite line endings.
+* text=auto
+*.sarib text eol=lf
+*.expected text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.js text eol=lf
