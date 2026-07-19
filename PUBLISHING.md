@@ -1,6 +1,6 @@
 # Publishing checklist — sarib-lang
 
-Everything is staged locally (steps 2–3 through the commit are done — repo initialized on `main`, first commit made). What remains yours: create the GitHub repo (step 1), add the remote and push (end of step 3), settings (step 4).
+**PUBLISHED 2026-07-20:** https://github.com/SyedSaribSultan/sarib-lang — steps 1–4 done (repo, push, description, topics) plus the v0.1 Release with `vscode-sarib-0.2.0.vsix` attached. Remaining from step 5 (optional): pinned G2/G3 issue, MCP community listing, announcement post. The checklist below is kept for provenance.
 
 1. **Create the repo:** github.com → New → `sarib-lang` (public). No template, no auto-README.
 2. **Swap the front door:** rename `README.md` → `HISTORY.md` (the session log is valuable — keep it), then `README-public.md` → `README.md`.
