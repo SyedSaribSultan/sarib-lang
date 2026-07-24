@@ -1,0 +1,5 @@
+# Code owners — GitHub auto-requests review from these owners on every PR.
+# Combined with branch protection ("require review from Code Owners"), this means
+# nothing merges to the canonical repo without the project owner's approval.
+
+*       @SyedSaribSultan
