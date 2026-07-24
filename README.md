@@ -26,39 +26,55 @@ Every knowledge format serves one master: Markdown serves documents, JSON serves
 
 **Measured, not promised** (`bench/gate-report.md`): a point edit costs **0.50%** of regenerating a 10k-token file (200×). A targeted question over a real 70-risk register costs **230 tokens** of context instead of 6,652 (29×). Concurrent edits merge order-independently (SEC, CRDT-convergent ops). Full round-trip losslessness enforced by a conformance corpus. The entire reference implementation — parser, canonicalizer, op engine, query engine, projections, CLI, MCP server — is **~700 lines of Python**.
 
-## Try it (60 seconds)
+## Install & try it (60 seconds)
 
 ```bash
-cd impl
-python3 -m sarib.cli validate ../examples/A-prose-native.sarib
-python3 -m sarib.cli render   ../examples/A-prose-native.sarib --view outline   # spatial cues
-python3 -m sarib.cli render   ../examples/A-prose-native.sarib --view board     # kanban projection
-python3 -m sarib.cli render   ../examples/A-prose-native.sarib --view mermaid   # dependency graph
-python3 -m sarib.cli query    ../examples/A-prose-native.sarib --spec '{"select":"none","filter":{"type":"task"}}'
-python3 -m sarib.cli apply    ../examples/A-prose-native.sarib --op '{"kind":"set-property","target":"t1","args":{"key":"status","value":"done"}}'
-python3 tests/run_corpus.py    # conformance
+pip install sarib          # zero-dependency core; installs the `sarib` command
+sarib validate examples/A-prose-native.sarib
+sarib render   examples/A-prose-native.sarib --view outline    # spatial cues
+sarib render   examples/A-prose-native.sarib --view board      # kanban projection
+sarib render   examples/A-prose-native.sarib --view mermaid    # dependency graph
+sarib query    examples/A-prose-native.sarib --spec '{"select":"none","filter":{"type":"task"}}'
+sarib apply    examples/A-prose-native.sarib --op '{"kind":"set-property","target":"t1","args":{"key":"status","value":"done"}}'
 ```
 
-**See it, not just read it:** from the repo root, `python tools/preview.py examples/A-prose-native.sarib` opens a local page with every projection as tabs — document, outline, board, dependency graph, canonical machine form.
+### Bring your own notes: `sarib import`
 
-**VS Code:** `editors/vscode-sarib/` ships syntax highlighting plus a live preview panel (`Ctrl+Shift+V`, re-renders as you type — it pipes the buffer through `tools/preview.py`, so editor and CLI can never disagree). Install the prebuilt `.vsix` from Releases, or build it yourself: `npx @vscode/vsce package && code --install-extension vscode-sarib-0.2.0.vsix`.
-
-**Agent-native:** the MCP server gives any MCP client (Claude Desktop, Claude Code, Cursor, …) five tools over a folder of `.sarib` files: `sarib_query / sarib_apply / sarib_render / sarib_validate / sarib_canon`. Setup:
+Turn existing Markdown into a `.sarib` knowledge graph:
 
 ```bash
-pip install mcp        # the server's only dependency (the core has none)
+sarib import notes/*.md -o knowledge.sarib                    # deterministic: headings->nodes, [[refs]]->edges
+sarib import notes/*.md -o knowledge.sarib --extract-edges    # + typed edges (constrained + verified)
+```
+
+The default build is deterministic and dependency-free. `--extract-edges` adds typed edges an
+agent proposes, but the agent is boxed so it can only *select and cite*, never invent: a closed
+edge vocabulary and existing-id targets (schema-enforced at decode time), a verbatim-quote
+requirement, and an independent entailment check on every edge; anything unsupported is dropped,
+and kept edges carry `inferred` provenance. It is high-precision and deliberately conservative —
+**assisted, verified extraction, not a perfect automatic graph.** (Uses a local Ollama model by
+default; `--model` / `--endpoint` to point elsewhere. Method + citations:
+[`market/importer-extraction-research.md`](market/importer-extraction-research.md).)
+
+**See it, not just read it:** `python tools/preview.py knowledge.sarib` (from a repo clone) opens a local page with every projection as tabs — document, outline, board, dependency graph, canonical machine form.
+
+**Agent-native:** the MCP server gives any MCP client (Claude Desktop, Claude Code, Cursor, …) five tools over a folder of `.sarib` files: `sarib_query / sarib_apply / sarib_render / sarib_validate / sarib_canon`.
+
+```bash
+pip install "sarib[mcp]"   # adds the MCP server
 ```
 
 Then register it with your client (Claude Desktop: `claude_desktop_config.json`; Claude Code: a project `.mcp.json`):
 
 ```json
 { "mcpServers": { "sarib": {
-    "command": "python",
-    "args": ["-m", "sarib.mcp_server", "<folder-of-.sarib-files>"],
-    "env": { "PYTHONPATH": "<repo>/impl", "PYTHONUTF8": "1" } } } }
+    "command": "sarib-mcp",
+    "args": ["<folder-of-.sarib-files>"] } } }
 ```
 
 Restart the client, approve the server, and just talk: *"which tasks are open?"* runs a bounded query; *"mark t1 done"* applies one id-addressed op — the file changes by a delta, never a rewrite.
+
+**VS Code:** `editors/vscode-sarib/` ships syntax highlighting plus a live preview panel (`Ctrl+Shift+V`). Install the prebuilt `.vsix` from Releases, or build it: `npx @vscode/vsce package && code --install-extension vscode-sarib-0.2.0.vsix`.
 
 ## The design, in five commitments
 

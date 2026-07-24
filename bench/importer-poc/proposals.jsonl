@@ -1,0 +1,14 @@
+{"source": "d-013", "type": "supersedes", "target": "d-016", "span": "→ **Amended by D-016 (Stage 4):** storage containment is a *single-parent, ordered spanning tree* (one home per node); multi-parent structure is delivered by transclusion (a cross-reference edge), not by multiple containment homes. The containment/cross-reference distinction itself stands."}
+{"source": "d-016", "type": "amends", "target": "d-013", "span": "Storage containment is a single-parent spanning tree; multi-parent via transclusion (amends D-013)"}
+{"source": "d-030", "type": "cites", "target": "d-015", "span": "Consistent with D-015 (everything is a node)"}
+{"source": "d-030", "type": "cites", "target": "d-023", "span": "Consistent with D-015 (everything is a node) and D-023 (schemas self-hosted)"}
+{"source": "d-033", "type": "cites", "target": "d-002", "span": "The token-efficiency thesis (D-002) requires editing by address, not regeneration; edits must target stable ids, never positions (P13)."}
+{"source": "d-036", "type": "cites", "target": "d-033", "span": "the read/write bridge (D-033) supplies ids."}
+{"source": "d-036", "type": "cites", "target": "d-014", "span": "create-node mints a new collision-free id (D-014);"}
+{"source": "d-038", "type": "cites", "target": "d-014", "span": "D-014"}
+{"source": "d-054", "type": "cites", "target": "d-047", "span": "D-047 defined spatial cues; rendering is where they're computed and placed, view-appropriately."}
+{"source": "d-056", "type": "cites", "target": "d-045", "span": "D-045"}
+{"source": "d-056", "type": "cites", "target": "d-049", "span": "D-049"}
+{"source": "d-056", "type": "cites", "target": "d-018", "span": "P16/D-018"}
+{"source": "d-056", "type": "cites", "target": "d-041", "span": "D-041"}
+{"source": "d-058", "type": "cites", "target": "d-025", "span": "D-025"}

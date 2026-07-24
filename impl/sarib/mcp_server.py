@@ -73,5 +73,10 @@ def sarib_canon(file: str) -> str:
     return canon(doc)
 
 
-if __name__ == "__main__":
+def main():
+    """Console-script entry point (`sarib-mcp <folder>`); folder read from argv at import."""
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

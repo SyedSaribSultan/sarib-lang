@@ -92,7 +92,8 @@ def query(doc: Doc, spec: dict) -> dict:
 
     return {"nodes": [project(i) for i in result_ids],
             "edges": [{"id": e, "type": doc.edges[e].type,
-                       "source": doc.edges[e].source, "target": doc.edges[e].target}
+                       "source": anchor_owner(doc, doc.edges[e].source),
+                       "target": anchor_owner(doc, doc.edges[e].target)}
                       for e in dict.fromkeys(result_edges)],
             "cursor": cursor,
             "diagnostics": doc.diagnostics}

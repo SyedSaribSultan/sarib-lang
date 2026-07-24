@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sarib"
+version = "0.1.0"
+description = "Reference implementation of the .sarib knowledge language: query bounded subgraphs and apply id-addressed atomic edits over plain-text knowledge."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Syed Sarib Sultan" }]
+keywords = ["knowledge", "graph", "markdown", "mcp", "ai-agents", "llm", "notes", "property-graph"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Text Processing :: Markup",
+]
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+
+[project.scripts]
+sarib = "sarib.cli:main"
+sarib-mcp = "sarib.mcp_server:main"
+
+[project.urls]
+Homepage = "https://github.com/SyedSaribSultan/sarib-lang"
+Repository = "https://github.com/SyedSaribSultan/sarib-lang"
+Issues = "https://github.com/SyedSaribSultan/sarib-lang/issues"
+
+[tool.setuptools]
+packages = ["sarib"]
