@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sarib"
-version = "0.1.1"
+version = "0.1.2"
 description = "Reference implementation of the .sarib knowledge language: query bounded subgraphs and apply id-addressed atomic edits over plain-text knowledge."
 readme = "README.md"
 requires-python = ">=3.9"

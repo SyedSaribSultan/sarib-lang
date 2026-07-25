@@ -90,7 +90,11 @@ class _Parser(argparse.ArgumentParser):
 
 
 def _load(path):
-    return parse(pathlib.Path(path).read_text(encoding="utf-8"))
+    p = pathlib.Path(path)
+    if not p.exists():
+        sys.exit(f"error: no such file: {path}\n"
+                 f"       (need a .sarib file? try:  sarib import your-notes.md -o kb.sarib)")
+    return parse(p.read_text(encoding="utf-8"))
 
 
 def _kv(pairs, what):

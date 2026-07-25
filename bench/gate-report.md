@@ -1,14 +1,14 @@
 # Freeze-gate run — programmatic gates
 
-Date: 2026-07-19 · impl v0.1 · tokens = o200k (offline gpt-tokenizer)
+Date: 2026-07-25 · impl v0.1.2 · tokens = o200k (offline gpt-tokenizer)
 
 ## G1 · Edit economy (target: op ≤1% of regeneration)
-- KB size: 9686 tokens (301 nodes)
-- One guarded point-edit op: 34 tokens
-- **Ratio: 0.35% → PASS**
+- KB size: 10042 tokens (301 nodes)
+- One guarded point-edit op: 50 tokens
+- **Ratio: 0.50% → PASS**
 
 ## G4 · Implementability (target: ≤1000 LOC, one weekend)
-- Non-blank/non-comment LOC, conformance surface + transports (parser+canon+model+ops+query+render+cli+mcp): 891
+- Non-blank/non-comment LOC, conformance surface + transports (parser+canon+model+ops+query+render+cli+mcp): 895
 - **PASS** (budget was for the parser alone)
 - Reported separately, outside the budget: consumers (importer.py) = 249 LOC
 
@@ -16,7 +16,7 @@ Date: 2026-07-19 · impl v0.1 · tokens = o200k (offline gpt-tokenizer)
 - 4 concurrent ops × 24 permutations → **1 distinct state(s) → PASS**
 
 ## G6 · Lossless round-trip (surface→model→surface→model)
-- 10k-token KB: **PASS** (+ 6/6 corpus cases enforce this in CI)
+- 10k-token KB: **PASS** (+ 6/6 corpus cases enforce this — `python impl/tests/run_corpus.py`)
 
 ## G7 · Cache-prefix survival (edit near end of doc; target: long stable prefix, minimal diff)
 - Canonical form: 302 lines; stable prefix 300 lines (99.3%); changed lines: 1

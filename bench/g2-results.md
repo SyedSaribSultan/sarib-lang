@@ -7,9 +7,9 @@ Conditions: **A** whole kb.md · **B** whole kb.sarib · **C** bounded query res
 ## Incomplete models (rate-capped; excluded from all averages and the verdict)
 
 - `gemini/gemini-3-flash-preview`: 20/432 cells cached — resume with `python bench/run_g2.py run --providers gemini`
-- `gemini/gemini-3.5-flash`: 47/432 cells cached — resume with `python bench/run_g2.py run --providers gemini`
-- `groq/llama-3.3-70b-versatile`: 243/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
-- `groq/qwen/qwen3.6-27b`: 341/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
+- `gemini/gemini-3.5-flash`: 49/432 cells cached — resume with `python bench/run_g2.py run --providers gemini`
+- `groq/llama-3.3-70b-versatile`: 245/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
+- `groq/qwen/qwen3.6-27b`: 357/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
 - `openrouter/nvidia/nemotron-3-super-120b-a12b:free`: 215/432 cells cached — resume with `python bench/run_g2.py run --providers openrouter`
 
 ## Matrix (live models)
@@ -43,6 +43,17 @@ Conditions: **A** whole kb.md · **B** whole kb.sarib · **C** bounded query res
 | ollama/qwen2.5:7b | 60.2% | 88.9% | +0.278 | 0.0020 * | [+0.139, +0.417] | 1348 | 387 | PASS |
 
 **Pooled (all models, 144 question-pairs):** Δ = +0.083, McNemar p = 0.0652 (n01=12, n10=24), bootstrap 95% CI [+0.000, +0.167].
+
+## A vs B — the negative result (whole `.sarib` vs whole Markdown)
+
+The claim this benchmark was built to test honestly: does handing a model the whole `.sarib` file beat handing it the same knowledge as Markdown? **It does not.** Across 4 complete model(s): worse on 2, flat on 1, better on 1 — while costing +45.6% to +47.7% more input tokens. There is no consistent accuracy gain from the surface syntax; the measured win (C vs A below) comes from **bounded retrieval and id-addressed edits**, not from how the file is written. This is what D-002 predicted, and it is why the syntax is not the pitch.
+
+| Model | A acc (md) | B acc (.sarib) | B−A | A tokens | B tokens | token cost |
+|---|---|---|---|---|---|---|
+| groq/llama-3.1-8b-instant | 58.3% | 58.3% | +0.000 | 1293 | 1905 | +47.3% |
+| groq/openai/gpt-oss-120b | 99.1% | 100.0% | +0.009 | 1325 | 1929 | +45.6% |
+| ollama/llama3.2:latest | 50.0% | 42.6% | -0.074 | 1283 | 1895 | +47.7% |
+| ollama/qwen2.5:7b | 60.2% | 55.6% | -0.046 | 1348 | 1970 | +46.1% |
 
 ## Ablation reads
 

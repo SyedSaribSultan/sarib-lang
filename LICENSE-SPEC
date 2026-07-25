@@ -1,10 +1,22 @@
+Copyright (c) 2026 Syed Sarib Sultan
+
 The .sarib specification and research corpus — the documents under stages/,
 research/, decisions/, risks/, and 00-charter.md — are licensed under the
-Creative Commons Attribution 4.0 International License (CC BY 4.0).
+Creative Commons Attribution 4.0 International License (CC BY 4.0). Everything
+else in this repository is MIT-licensed (see LICENSE).
 
 You are free to share and adapt this material for any purpose, including
 commercially, provided you give appropriate credit to the .sarib project
-(Syed Sarib) and indicate if changes were made.
+(Syed Sarib Sultan) and indicate if changes were made.
+
+Suggested attribution:
+  ".sarib" by Syed Sarib Sultan (https://github.com/SyedSaribSultan/sarib-lang),
+  licensed CC BY 4.0.
+
+Third-party material: this grant covers the project's own text. Quoted passages
+from external sources — cited throughout research/ with author and link — remain
+the copyright of their respective authors, reproduced as quotation for commentary
+and criticism. They are not sublicensed under this notice.
 
 Full license text: https://creativecommons.org/licenses/by/4.0/legalcode
 

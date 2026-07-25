@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Syed Sarib Sultan
+Copyright (c) 2026 Syed Sarib
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-Scope note: everything in this repository is MIT-licensed EXCEPT the specification
-and research prose — stages/, research/, decisions/, risks/, and 00-charter.md —
-which is licensed CC BY 4.0 (see LICENSE-SPEC).
+Scope note: this MIT license covers the code in this repository (impl/, bench/,
+dogfood/ scripts). The specification and research documents (stages/, research/,
+decisions/, risks/, 00-charter.md) are licensed CC BY 4.0 — see LICENSE-SPEC.

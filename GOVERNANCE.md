@@ -29,3 +29,10 @@ stays with its originator.
 `.sarib` was created and is maintained by **Syed Sarib Sultan**. The project's
 licenses (MIT for code, CC-BY-4.0 for the specification/prose) require that this
 attribution is preserved in copies and derivative works.
+
+AI tooling was used throughout, under the author's direction, selection, and
+review — commits carry a `Co-Authored-By` trailer where that was the case. The
+author claims copyright in the resulting selection, arrangement, and expression.
+Every design decision is recorded in `decisions/decision-log.md` with its
+rationale and a reversal condition, and every factual claim is cited; the
+judgment behind those is the author's.

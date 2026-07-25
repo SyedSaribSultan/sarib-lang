@@ -1,29 +1,40 @@
 """Freeze-gate benchmark runner (Stage 15 §4). Programmatically measurable gates:
 G1 edit economy · G4 implementability · G5 merge/permutation safety · G6 round-trip
 G7 cache-prefix survival.  (G2/G3 protocols in bench/g2-g3-protocol.md; G8 in tokenizer-report.md)
-Run from repo root: python bench/run_gates.py
-Token counts via node gpt-tokenizer (offline BPE) when available, else chars/4 estimate.
+Run from repo root: python bench/run_gates.py        (real o200k tokens; needs gpt-tokenizer)
+                    python bench/run_gates.py --estimate   (chars/4; every figure labelled ESTIMATE)
+
+Token counts come from node gpt-tokenizer (offline BPE). If it is unavailable the runner ABORTS
+rather than silently degrading to chars/4 — a previous version did degrade, and overwrote a real
+measurement with an estimate while still labelling it "o200k". Never again: the method actually
+used is recorded in the report header.
 """
-import json, pathlib, random, subprocess, sys, itertools
+import datetime, json, pathlib, random, subprocess, sys, itertools
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "impl"))
 from sarib import parse, canon, fmt, apply as apply_op   # noqa: E402
 from sarib.ops import fold                               # noqa: E402
+from sarib import __version__                            # noqa: E402
 
-NODE_TOK = "/tmp/tok/node_modules"
+ESTIMATE = "--estimate" in sys.argv
+TOK_METHOD = "chars/4 ESTIMATE (not a real tokenizer)" if ESTIMATE else "o200k (offline gpt-tokenizer)"
+_JS = ("const{encode}=require('gpt-tokenizer/cjs/encoding/o200k_base');"
+       "process.stdout.write(String(encode(require('fs').readFileSync(0,'utf8')).length))")
 
 
 def tokens(text: str) -> int:
-    try:
-        r = subprocess.run(
-            ["node", "-e",
-             "const{encode}=require('gpt-tokenizer/cjs/encoding/o200k_base');"
-             "process.stdout.write(String(encode(require('fs').readFileSync(0,'utf8')).length))"],
-            input=text, capture_output=True, text=True, env={"NODE_PATH": NODE_TOK, "PATH": "/usr/bin:/bin:/usr/local/bin"})
-        return int(r.stdout.strip())
-    except Exception:
+    if ESTIMATE:
         return max(1, len(text) // 4)
+    try:
+        r = subprocess.run(["node", "-e", _JS], input=text, capture_output=True, text=True)
+        return int(r.stdout.strip())
+    except Exception as e:
+        raise SystemExit(
+            f"gate runner: tokenizer unavailable ({e.__class__.__name__}: {e}).\n"
+            f"  fix:  npm i gpt-tokenizer   (then re-run from the repo root)\n"
+            f"  or:   python bench/run_gates.py --estimate   (chars/4; figures labelled ESTIMATE)\n"
+            f"Refusing to silently substitute an estimate for a measurement.")
 
 
 def gen_kb(n_sections=12, tasks_per=12) -> str:
@@ -52,7 +63,8 @@ def gen_kb(n_sections=12, tasks_per=12) -> str:
 
 def main():
     report = ["# Freeze-gate run — programmatic gates", "",
-              f"Date: 2026-07-19 · impl v0.1 · tokens = o200k (offline gpt-tokenizer)", ""]
+              f"Date: {datetime.date.today().isoformat()} · impl v{__version__} · "
+              f"tokens = {TOK_METHOD}", ""]
     kb = gen_kb()
     doc = parse(kb)
     kb_tokens = tokens(kb)
@@ -110,7 +122,8 @@ def main():
     # ---- G6: round-trip (corpus already enforces; re-assert on the big KB) ----
     g6 = canon(parse(fmt(parse(kb)))) == canon(parse(kb))
     report += [f"## G6 · Lossless round-trip (surface→model→surface→model)",
-               f"- 10k-token KB: **{'PASS' if g6 else 'FAIL'}** (+ 6/6 corpus cases enforce this in CI)", ""]
+               f"- 10k-token KB: **{'PASS' if g6 else 'FAIL'}** "
+               f"(+ 6/6 corpus cases enforce this — `python impl/tests/run_corpus.py`)", ""]
 
     # ---- G7: cache-prefix survival ----
     doc2 = parse(kb)
@@ -141,4 +154,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")   # '≤' in the G4 line dies on Windows cp1252
     main()

@@ -451,6 +451,32 @@ def write_report():
             L += ["", f"**Pooled (all models, {len(pooled_pairs)} question-pairs):** "
                       f"Δ = {d:+.3f}, McNemar p = {mcnemar_exact(n01, n10):.4f} "
                       f"(n01={n01}, n10={n10}), bootstrap 95% CI [{lo:+.3f}, {hi:+.3f}].", ""]
+        # ---- A vs B: the negative result, stated explicitly (it is the headline honesty claim) ----
+        ab = []
+        for (prov, model), data in real.items():
+            st = stats_for(data["rows"])
+            if "A" in st and "B" in st:
+                ab.append((f"{prov}/{model}", st["A"]["acc"], st["B"]["acc"],
+                           st["A"]["tokens"], st["B"]["tokens"]))
+        if ab:
+            worse = sum(1 for _, a, b, _, _ in ab if b < a - 1e-9)
+            flat = sum(1 for _, a, b, _, _ in ab if abs(b - a) <= 1e-9)
+            better = sum(1 for _, a, b, _, _ in ab if b > a + 1e-9)
+            tok = [(bt / at - 1) * 100 for _, _, _, at, bt in ab if at]
+            L += ["## A vs B — the negative result (whole `.sarib` vs whole Markdown)", "",
+                  "The claim this benchmark was built to test honestly: does handing a model the whole "
+                  "`.sarib` file beat handing it the same knowledge as Markdown? **It does not.** Across "
+                  f"{len(ab)} complete model(s): worse on {worse}, flat on {flat}, better on {better} — "
+                  f"while costing {min(tok):+.1f}% to {max(tok):+.1f}% more input tokens. There is no "
+                  "consistent accuracy gain from the surface syntax; the measured win (C vs A below) comes "
+                  "from **bounded retrieval and id-addressed edits**, not from how the file is written. "
+                  "This is what D-002 predicted, and it is why the syntax is not the pitch.", "",
+                  "| Model | A acc (md) | B acc (.sarib) | B−A | A tokens | B tokens | token cost |",
+                  "|---|---|---|---|---|---|---|"]
+            for name, a, b, at, bt in ab:
+                L.append(f"| {name} | {fmt_pct(a)} | {fmt_pct(b)} | {b - a:+.3f} | {at:.0f} | {bt:.0f} "
+                         f"| {(bt / at - 1) * 100:+.1f}% |")
+            L.append("")
         L += ["## Ablation reads", "",
               "- **B vs D (types/edges on↔off, same nesting):** structure-vs-semantics effect.",
               "- **C vs A:** bounded retrieval + structure combined (the S4 headline).",

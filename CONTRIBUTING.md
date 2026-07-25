@@ -34,7 +34,10 @@ licenses. It is **not** a copyright transfer — you keep authorship of your wor
 git commit -s -m "your message"     # adds a "Signed-off-by:" line
 ```
 
-Pull requests whose commits are not signed off cannot be merged.
+Pull requests whose commits are not signed off cannot be merged. (Tip:
+`git config format.signOff true` makes it automatic. Note that the pre-v0.1
+history predates this requirement, so early commits are unsigned; the rule
+applies from here forward.)
 
 ## Licensing of contributions
 

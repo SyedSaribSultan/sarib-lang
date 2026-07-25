@@ -2,7 +2,7 @@
 
 *One plain-text source of truth. Humans write it like Markdown. Agents edit it like a database. Every view — document, outline, board, graph, timeline, context window — is a projection.*
 
-**Status: v0.1 — working reference implementation; spec complete; freeze gated on benchmarks** (5 of 8 gates green, measured; 2 blocked on external eval; 1 partial). This is a research-grade open standard proposal, built in the open with its full design history.
+**Status: v0.1 — working reference implementation; spec complete; freeze gated on benchmarks.** 5 gates green and measured; **G2 measured with a mixed verdict** (4 models complete, 5 rate-capped — [`bench/g2-results.md`](bench/g2-results.md)); G3 blocked on human raters; G8 partial pending an open-weight tokenizer re-run. This is a research-grade open standard proposal, built in the open with its full design history — including the results that went against it.
 
 ```markdown
 # Q3 Planning
@@ -24,18 +24,57 @@ Every knowledge format serves one master: Markdown serves documents, JSON serves
 - **Humans** write prose + light marks (a Markdown superset; zero marks required — plain prose is valid).
 - **Agents** query bounded subgraphs and apply id-addressed atomic operations — never regeneration.
 
-**Measured, not promised** (`bench/gate-report.md`): a point edit costs **0.50%** of regenerating a 10k-token file (200×). A targeted question over a real 70-risk register costs **230 tokens** of context instead of 6,652 (29×). Concurrent edits merge order-independently (SEC, CRDT-convergent ops). Full round-trip losslessness enforced by a conformance corpus. The entire reference implementation — parser, canonicalizer, op engine, query engine, projections, CLI, MCP server — is **~700 lines of Python**.
+**Measured, not promised.** A point edit costs **0.50%** of regenerating a 10k-token file — a 200× reduction against whole-document regeneration ([`bench/gate-report.md`](bench/gate-report.md), G1; run it yourself with `python bench/run_gates.py`). A targeted question over this project's real 70-risk register costs **230 tokens** of context instead of 6,652 ([`bench/g2-g3-protocol.md`](bench/g2-g3-protocol.md) — which also records a case where the win narrows to 1.8×). Concurrent edits merge order-independently (SEC, CRDT-convergent ops). Full round-trip losslessness enforced by a conformance corpus. The conformance surface — parser, canonicalizer, model, op engine, query engine, projections, CLI, MCP server — is **891 lines of Python**, inside a ≤1000-LOC budget declared before it was measured; the Markdown importer is a further 249 lines, reported outside the budget as a consumer.
 
 ## Install & try it (60 seconds)
 
+Nothing but `pip` — this creates its own demo file, so it works from any empty directory:
+
 ```bash
 pip install sarib          # zero-dependency core; installs the `sarib` command
-sarib validate examples/A-prose-native.sarib
-sarib render   examples/A-prose-native.sarib --view outline    # spatial cues
-sarib render   examples/A-prose-native.sarib --view board      # kanban projection
-sarib render   examples/A-prose-native.sarib --view mermaid    # dependency graph
-sarib query    examples/A-prose-native.sarib --spec '{"select":"none","filter":{"type":"task"}}'
-sarib apply    examples/A-prose-native.sarib --op '{"kind":"set-property","target":"t1","args":{"key":"status","value":"done"}}'
+
+cat > demo.sarib <<'EOF'
+# Q3 Planning
+
+## Migrate invoices {.task} ^t1
+status:: todo
+due:: 2026-08-01
+owner:: [[Alice]]
+
+Can't start until we [depends-on:: [[Adopt the new billing provider]]].
+
+## Adopt the new billing provider {.decision} ^d1
+status:: accepted
+EOF
+
+sarib validate demo.sarib
+sarib render   demo.sarib --view outline           # spatial cues
+sarib render   demo.sarib --view board             # kanban projection
+sarib render   demo.sarib --view mermaid           # dependency graph
+sarib query    demo.sarib --type task              # bounded query → a small subgraph
+sarib query    demo.sarib --from t1 --edges depends-on    # what blocks t1
+sarib set      demo.sarib t1 status=done --dry-run # a one-property edit, by id
+```
+
+`validate` will report one `unresolved-reference: 'Alice'` — that is the design, not a failure. There is no node named Alice, so the resolver leaves the link unresolved and says so rather than guessing which node you meant (D-024). Diagnostics are lint, never fatal: every byte string is a valid `.sarib` file.
+
+Agents use the same engine through a machine-facing form — a full query spec or operation as JSON:
+
+```bash
+sarib query demo.sarib --spec '{"select":"none","filter":{"type":"task"}}'
+sarib apply demo.sarib --op   '{"kind":"set-property","target":"t1","args":{"key":"status","value":"done"}}'
+```
+
+*(On Windows `cmd.exe`, swap the outer single quotes for double quotes and escape the inner ones — or just use the flag forms above.)*
+
+### From a repo clone
+
+`git clone` this repo for the worked examples, the conformance corpus, and the benchmarks:
+
+```bash
+sarib render examples/A-prose-native.sarib --view board
+python impl/tests/run_corpus.py      # conformance: 6/6, no dependencies
+python bench/run_gates.py            # the measured gates (needs: npm i gpt-tokenizer)
 ```
 
 ### Bring your own notes: `sarib import`
@@ -90,15 +129,18 @@ Restart the client, approve the server, and just talk: *"which tasks are open?"*
 |---|---|
 | `stages/14-language-specification.md` | **The spec** (start here) |
 | `stages/01…15-*.md` | The full staged design history — each stage critiques its predecessor |
-| `impl/` | Reference implementation (Python, ~700 LOC) + conformance corpus |
-| `examples/` | The two syntax candidates (A = normative, B = future compact profile) |
-| `bench/` | Freeze-gate benchmarks + tokenizer verification + G2/G3 protocols |
-| `research/` | 8 cited research files (why formats win/die, LLM format evidence, round-trip law) |
+| `impl/` | Reference implementation (Python, 891 LOC of conformance surface) + conformance corpus |
+| `examples/` | The normative syntax candidate (A); candidate B is specified in `stages/10` but not shipped as a file |
+| `bench/` | Freeze-gate benchmarks + tokenizer verification + the measured G2 run |
+| `docs/` | Plain-language explainer of how it works |
+| `research/` | 9 cited research files (why formats win/die, LLM format evidence, round-trip law) |
 | `decisions/` · `risks/` | 61 logged decisions with reversal conditions · living risk register |
 | `dogfood/` | The project's own decision log & risk register as `.sarib`, managed via ops |
 
 ## Honest status & what's next
 
-The remaining gates need what a repo can't provide alone: **G2** (accuracy vs Markdown across model families — protocol ready, needs API runs), **G3** (cold human readability, needs raters), and an open-weight tokenizer re-run. The spec freezes only when they're green — if they fail, the design changes, not the benchmark. Contributions that run the protocols, port the parser (TS/Rust), or break the conformance corpus are the most valuable ones.
+**G2 has been run, and the honest reading is mixed** ([`bench/g2-results.md`](bench/g2-results.md), raw per-call records included). Answering from a bounded query beat pasting whole Markdown by **+27.8 points on a 7B model** (88.9% vs 60.2%, McNemar p=0.002) and reached **parity at ~⅓ the input tokens on a 120B model** (100% vs 99.1%, 420 vs 1,325 tokens). But pooled across models the gain is **not statistically significant** (Δ=+0.083, p=0.065), one model (`llama3.2`, 3B) **failed** the criterion outright at −0.111, and — the result that matters most — **feeding a model the whole `.sarib` file is not better than whole Markdown**, at ~46% more tokens. So the win is the bounded-retrieval-and-atomic-edit *architecture*, not syntax density. That is what D-002 predicted, and it is why the syntax is not the pitch.
+
+Still outstanding: **G3** (cold human readability, needs raters) and an open-weight tokenizer re-run. The spec freezes only when the gates are green — if they fail, the design changes, not the benchmark. Contributions that run the protocols, port the parser (TS/Rust), or break the conformance corpus are the most valuable ones.
 
 Licenses: code MIT, spec CC-BY-4.0. Conformance is defined by `impl/tests/corpus/`, not by any implementation.
