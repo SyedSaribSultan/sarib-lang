@@ -8,7 +8,7 @@ Claude Desktop / Cowork config:
       "args": ["-m", "sarib.mcp_server", "<dir>"], "cwd": "<repo>/impl" } } }
 """
 from __future__ import annotations
-import json, pathlib, sys
+import functools, json, pathlib, sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from mcp.server.fastmcp import FastMCP
@@ -20,13 +20,54 @@ ROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 mcp = FastMCP("sarib")
 
 
+class Denied(Exception):
+    """The requested path is outside the managed folder."""
+
+
+def _guard(fn):
+    """Turn a containment failure into a message the agent can read, not a crashed server."""
+    @functools.wraps(fn)
+    def wrapped(*a, **k):
+        try:
+            return fn(*a, **k)
+        except Denied as e:
+            return f"DENIED: {e}"
+    return wrapped
+
+
+def _resolve(file: str) -> pathlib.Path:
+    """Contain every tool call inside ROOT. An agent's `file` argument is untrusted —
+    it can carry prompt-injected input — and sarib_apply WRITES, so this is the only
+    thing standing between a managed notes folder and arbitrary file read/write.
+
+    Three failure modes this deliberately closes:
+      * `assert` would be stripped under `python -O`, removing the check entirely;
+      * `str(p).startswith(str(ROOT))` is a *string* prefix test, so a sibling
+        directory (ROOT=/x/notes, path=/x/notes-secret/…) slips through;
+      * `ROOT / file` silently discards ROOT when `file` is absolute.
+    `.resolve()` first also collapses `..` and follows symlinks, so a symlink inside
+    the folder pointing outside it is caught too.
+    """
+    raw = pathlib.Path(file)
+    if raw.is_absolute() or raw.drive or raw.root:
+        raise Denied(f"path must be relative to the managed folder: {file!r}")
+    p = (ROOT / raw).resolve()
+    if p != ROOT and ROOT not in p.parents:      # true path containment, not prefix matching
+        raise Denied(f"path escapes the managed folder: {file!r}")
+    if p.suffix != ".sarib":
+        raise Denied(f"only .sarib files are addressable: {file!r}")
+    return p
+
+
 def _doc(file: str):
-    p = (ROOT / file).resolve()
-    assert str(p).startswith(str(ROOT)), "path escape"
+    p = _resolve(file)
+    if not p.is_file():
+        raise Denied(f"no such file in the managed folder: {file!r}")
     return p, parse(p.read_text(encoding="utf-8"))
 
 
 @mcp.tool()
+@_guard
 def sarib_query(file: str, spec: str) -> str:
     """Run a bounded 7-axis query over a .sarib file. spec is JSON:
     {start, select, direction, order, filter:{type,status,prop:[[k,op,v]]},
@@ -37,6 +78,7 @@ def sarib_query(file: str, spec: str) -> str:
 
 
 @mcp.tool()
+@_guard
 def sarib_apply(file: str, op: str) -> str:
     """Apply one atomic operation (JSON: {kind, target, args, expect?}) addressed
     by node/edge id. Guarded ops (expect:{id:{version:v}}) are rejected if stale.
@@ -51,6 +93,7 @@ def sarib_apply(file: str, op: str) -> str:
 
 
 @mcp.tool()
+@_guard
 def sarib_render(file: str, view: str = "outline") -> str:
     """Project a .sarib file into a view: document | outline (spatial cues) |
     board (tasks by status) | mermaid (dependency graph, terminal export)."""
@@ -59,6 +102,7 @@ def sarib_render(file: str, view: str = "outline") -> str:
 
 
 @mcp.tool()
+@_guard
 def sarib_validate(file: str) -> str:
     """Three-tier validation (D-049): parse is total; returns non-fatal diagnostics."""
     _, doc = _doc(file)
@@ -67,6 +111,7 @@ def sarib_validate(file: str) -> str:
 
 
 @mcp.tool()
+@_guard
 def sarib_canon(file: str) -> str:
     """Canonical normal form (D-041): one byte-string per state; for hashing/diff."""
     _, doc = _doc(file)

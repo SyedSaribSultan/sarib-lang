@@ -25,6 +25,11 @@ jobs:
       - name: Conformance corpus (round-trip + idempotence)
         working-directory: impl
         run: python tests/run_corpus.py
+      - name: MCP path containment (must hold under -O, where asserts vanish)
+        run: |
+          pip install "./impl[mcp]"
+          python    impl/tests/test_mcp_containment.py
+          python -O impl/tests/test_mcp_containment.py
       - name: CLI smoke — the README quickstart, from scratch
         run: |
           pip install ./impl

@@ -8,7 +8,7 @@ Date: 2026-07-25 · impl v0.1.2 · tokens = o200k (offline gpt-tokenizer)
 - **Ratio: 0.50% → PASS**
 
 ## G4 · Implementability (target: ≤1000 LOC, one weekend)
-- Non-blank/non-comment LOC, conformance surface + transports (parser+canon+model+ops+query+render+cli+mcp): 895
+- Non-blank/non-comment LOC, conformance surface + transports (parser+canon+model+ops+query+render+cli+mcp): 933
 - **PASS** (budget was for the parser alone)
 - Reported separately, outside the budget: consumers (importer.py) = 249 LOC
 
