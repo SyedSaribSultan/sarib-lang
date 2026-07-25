@@ -70,13 +70,26 @@ def main():
                f"- **Ratio: {ratio:.2f}% → {'PASS' if g1 else 'FAIL'}**", ""]
 
     # ---- G4: implementability ----
-    loc = sum(1 for f in (ROOT / "impl" / "sarib").glob("*.py")
-              for line in f.read_text(encoding="utf-8").splitlines()
-              if line.strip() and not line.strip().startswith("#"))
+    # Scope: the CONFORMANCE surface (S6 = "a conforming parser is a weekend's work") plus the
+    # thin transports. `importer.py` is an adoption CONSUMER — nothing in the spec requires an
+    # importer, and --extract-edges needs an external model — so it is reported, not budgeted
+    # (same status as tools/preview.py, which lives outside the package).
+    CONSUMERS = {"importer.py"}
+
+    def _loc(fs):
+        return sum(1 for f in fs for line in f.read_text(encoding="utf-8").splitlines()
+                   if line.strip() and not line.strip().startswith("#"))
+
+    pkg = sorted((ROOT / "impl" / "sarib").glob("*.py"))
+    loc = _loc([f for f in pkg if f.name not in CONSUMERS])
+    loc_consumer = _loc([f for f in pkg if f.name in CONSUMERS])
     g4 = loc <= 1000
     report += [f"## G4 · Implementability (target: ≤1000 LOC, one weekend)",
-               f"- Non-blank/non-comment LOC, ALL components (parser+canon+ops+query+render+cli+mcp): {loc}",
-               f"- **{'PASS' if g4 else 'FAIL'}** (budget was for the parser alone)", ""]
+               f"- Non-blank/non-comment LOC, conformance surface + transports "
+               f"(parser+canon+model+ops+query+render+cli+mcp): {loc}",
+               f"- **{'PASS' if g4 else 'FAIL'}** (budget was for the parser alone)",
+               f"- Reported separately, outside the budget: consumers "
+               f"({', '.join(sorted(CONSUMERS))}) = {loc_consumer} LOC", ""]
 
     # ---- G5: merge / permutation invariance (SEC) ----
     ops = [
