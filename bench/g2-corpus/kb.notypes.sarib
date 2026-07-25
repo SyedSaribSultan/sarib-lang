@@ -1,0 +1,242 @@
+---
+title: Atlas Program KB
+---
+
+# Atlas Program KB
+
+## Goals
+
+### EU Launch
+target: 2026-09-15
+
+## Decisions
+
+### Choose Stripe as payment provider
+status: accepted
+date: 2026-05-10
+cites: PCI Compliance Audit 2026
+
+Lower fees and stronger EU coverage than the incumbent.
+
+### Use event sourcing for the billing ledger
+status: accepted
+date: 2026-05-22
+cites: Latency Report Q2
+
+Append-only ledger simplifies audit and replay.
+
+### Deprecate the legacy REST API
+status: proposed
+date: 2026-06-03
+cites: User Research June
+
+Interviewees rely on the new endpoints already.
+
+### Ship the EU region first
+status: accepted
+date: 2026-06-11
+cites: User Research June
+
+Largest waitlisted cohort is in the EU.
+
+### Adopt Postgres 16 for the ledger store
+status: superseded
+date: 2026-04-18
+cites: Latency Report Q2
+
+Superseded by the event sourcing decision.
+
+## Open Questions
+
+### Do we need SOC2 certification before launch?
+status: open
+
+Until answered this blocks Run the penetration test.
+
+### Can the exporter reuse the ledger schema?
+status: open
+
+Until answered this blocks Build the invoice PDF exporter.
+
+### Is the latency budget 200ms or 300ms?
+status: resolved
+
+### Who signs the Stripe contract?
+status: open
+
+Until answered this blocks Integrate the Stripe checkout flow.
+
+## Workstream: Billing
+
+### Integrate the Stripe checkout flow
+status: doing
+priority: high
+due: 2026-08-05
+owned by: Alice Chen
+
+Covers hosted checkout and webhook handling. Gated by Choose Stripe as payment provider.
+
+### Migrate historical invoices to the ledger
+status: todo
+priority: high
+due: 2026-08-20
+owned by: Alice Chen
+
+Backfill of roughly forty thousand historical invoices. Gated by Integrate the Stripe checkout flow and Use event sourcing for the billing ledger.
+
+### Notify customers about the billing change
+status: todo
+priority: med
+due: 2026-09-01
+owned by: Dev Patel
+
+Email plus in-app banner announcement. Gated by Migrate historical invoices to the ledger.
+
+### Reconcile refunds against the old system
+status: todo
+priority: low
+owned by: Dev Patel
+
+Reconciliation window is the last two fiscal years. Gated by Migrate historical invoices to the ledger.
+
+### Build the invoice PDF exporter
+status: todo
+priority: med
+owned by: Alice Chen
+
+Exports must match the ledger totals exactly.
+
+### Set up billing alerts and dashboards
+status: done
+priority: low
+owned by: Dev Patel
+
+Dashboards live in the shared observability space.
+
+### Localize the checkout UI for German
+status: todo
+priority: med
+owned by: Alice Chen
+part of: EU Launch
+
+Covers currency, date formats, and checkout copy. Gated by Integrate the Stripe checkout flow.
+
+## Workstream: Search
+
+### Rebuild the search indexing pipeline
+status: doing
+priority: high
+due: 2026-08-12
+owned by: Bob Marsh
+
+Replaces the nightly batch indexer with streaming updates.
+
+### Add typo tolerance to product search
+status: todo
+priority: med
+owned by: Bob Marsh
+
+Uses edit-distance matching for product names. Gated by Rebuild the search indexing pipeline.
+
+### Benchmark query latency at ten times load
+status: done
+priority: high
+owned by: Bob Marsh
+
+Load profile mirrors the June traffic snapshot.
+
+### Ship the search relevance A/B test
+status: todo
+priority: med
+owned by: Dev Patel
+
+Experiment runs on ten percent of traffic. Gated by Add typo tolerance to product search.
+
+### Archive the old search cluster
+status: todo
+priority: low
+owned by: Bob Marsh
+
+Cluster is kept read-only for thirty days first. Gated by Rebuild the search indexing pipeline.
+
+### Cache hot queries at the edge
+status: doing
+priority: med
+owned by: Carol Diaz
+
+Cache keys include region and locale. Gated by Ship the EU region first.
+
+## Workstream: Platform
+
+### Provision the EU data region
+status: doing
+priority: high
+due: 2026-08-01
+owned by: Carol Diaz
+part of: EU Launch
+
+Region is provisioned in Frankfurt. Gated by Ship the EU region first.
+
+### Set up GDPR data-retention jobs
+status: todo
+priority: high
+due: 2026-08-25
+owned by: Erin Fox
+part of: EU Launch
+
+Retention defaults to ninety days for event data. Gated by Provision the EU data region.
+
+### Run the penetration test
+status: todo
+priority: high
+owned by: Erin Fox
+part of: EU Launch
+
+Scope covers the public API and the admin console.
+
+### Automate blue-green deploys
+status: done
+priority: med
+owned by: Carol Diaz
+
+Cutover rehearsed in the staging environment.
+
+### Rotate all production secrets
+status: done
+priority: high
+owned by: Erin Fox
+
+Rotation includes database and third-party credentials.
+
+## People
+
+### Alice Chen
+role: backend engineer
+team: Billing
+
+### Bob Marsh
+role: data engineer
+team: Search
+
+### Carol Diaz
+role: platform engineer
+team: Platform
+
+### Dev Patel
+role: product manager
+team: Billing
+
+### Erin Fox
+role: security engineer
+team: Platform
+
+## Sources
+
+### PCI Compliance Audit 2026
+origin: external audit report, May 2026
+
+### Latency Report Q2
+origin: internal measurement, June 2026
+
+### User Research June
+origin: twelve customer interviews

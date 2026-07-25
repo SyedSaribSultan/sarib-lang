@@ -1,0 +1,808 @@
+[
+ {
+  "id": "L01",
+  "class": "lookup",
+  "question": "What is the status of the task \"Migrate historical invoices to the ledger\"?",
+  "query": {
+   "start": "t2",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t2",
+   "key": "status"
+  },
+  "answer_type": "scalar",
+  "answer": "todo"
+ },
+ {
+  "id": "L02",
+  "class": "lookup",
+  "question": "What is the status of the task \"Cache hot queries at the edge\"?",
+  "query": {
+   "start": "t12",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t12",
+   "key": "status"
+  },
+  "answer_type": "scalar",
+  "answer": "doing"
+ },
+ {
+  "id": "L03",
+  "class": "lookup",
+  "question": "What is the status of the task \"Rotate all production secrets\"?",
+  "query": {
+   "start": "t17",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t17",
+   "key": "status"
+  },
+  "answer_type": "scalar",
+  "answer": "done"
+ },
+ {
+  "id": "L04",
+  "class": "lookup",
+  "question": "Who owns the task \"Build the invoice PDF exporter\"?",
+  "query": {
+   "start": "t5",
+   "select": "owned-by",
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_target_titles",
+   "edge": "owned-by",
+   "from": "t5"
+  },
+  "answer_type": "scalar",
+  "answer": "Alice Chen"
+ },
+ {
+  "id": "L05",
+  "class": "lookup",
+  "question": "Who owns the task \"Ship the search relevance A/B test\"?",
+  "query": {
+   "start": "t10",
+   "select": "owned-by",
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_target_titles",
+   "edge": "owned-by",
+   "from": "t10"
+  },
+  "answer_type": "scalar",
+  "answer": "Dev Patel"
+ },
+ {
+  "id": "L06",
+  "class": "lookup",
+  "question": "What is the due date of the task \"Provision the EU data region\"?",
+  "query": {
+   "start": "t13",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t13",
+   "key": "due"
+  },
+  "answer_type": "date",
+  "answer": "2026-08-01"
+ },
+ {
+  "id": "L07",
+  "class": "lookup",
+  "question": "What is the due date of the task \"Set up GDPR data-retention jobs\"?",
+  "query": {
+   "start": "t14",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t14",
+   "key": "due"
+  },
+  "answer_type": "date",
+  "answer": "2026-08-25"
+ },
+ {
+  "id": "L08",
+  "class": "lookup",
+  "question": "What is the priority of the task \"Archive the old search cluster\"?",
+  "query": {
+   "start": "t11",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t11",
+   "key": "priority"
+  },
+  "answer_type": "scalar",
+  "answer": "low"
+ },
+ {
+  "id": "L09",
+  "class": "lookup",
+  "question": "What is the priority of the task \"Rebuild the search indexing pipeline\"?",
+  "query": {
+   "start": "t7",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "t7",
+   "key": "priority"
+  },
+  "answer_type": "scalar",
+  "answer": "high"
+ },
+ {
+  "id": "L10",
+  "class": "lookup",
+  "question": "What is the status of the decision \"Deprecate the legacy REST API\"?",
+  "query": {
+   "start": "d3",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "d3",
+   "key": "status"
+  },
+  "answer_type": "scalar",
+  "answer": "proposed"
+ },
+ {
+  "id": "L11",
+  "class": "lookup",
+  "question": "What is Erin Fox's role?",
+  "query": {
+   "start": "p5",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "p5",
+   "key": "role"
+  },
+  "answer_type": "scalar",
+  "answer": "security engineer"
+ },
+ {
+  "id": "L12",
+  "class": "lookup",
+  "question": "What is the target date of the goal \"EU Launch\"?",
+  "query": {
+   "start": "g1",
+   "select": "contains",
+   "bound": {
+    "max_nodes": 1,
+    "max_depth": 0
+   }
+  },
+  "extract": {
+   "kind": "prop",
+   "node": "g1",
+   "key": "target"
+  },
+  "answer_type": "date",
+  "answer": "2026-09-15"
+ },
+ {
+  "id": "M01",
+  "class": "multihop",
+  "question": "Which items does the task \"Notify customers about the billing change\" directly depend on?",
+  "query": {
+   "start": "t3",
+   "select": "depends-on",
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_target_titles",
+   "edge": "depends-on",
+   "from": "t3"
+  },
+  "answer_type": "list",
+  "answer": [
+   "Migrate historical invoices to the ledger"
+  ]
+ },
+ {
+  "id": "M02",
+  "class": "multihop",
+  "question": "Which items does the task \"Migrate historical invoices to the ledger\" directly depend on?",
+  "query": {
+   "start": "t2",
+   "select": "depends-on",
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_target_titles",
+   "edge": "depends-on",
+   "from": "t2"
+  },
+  "answer_type": "list",
+  "answer": [
+   "Integrate the Stripe checkout flow",
+   "Use event sourcing for the billing ledger"
+  ]
+ },
+ {
+  "id": "M03",
+  "class": "multihop",
+  "question": "Who owns the task that \"Notify customers about the billing change\" directly depends on?",
+  "query": {
+   "start": "t3",
+   "select": [
+    "depends-on",
+    "owned-by"
+   ],
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 2
+   }
+  },
+  "extract": {
+   "kind": "hop2_title",
+   "edgeA": "depends-on",
+   "edgeB": "owned-by",
+   "from": "t3"
+  },
+  "answer_type": "scalar",
+  "answer": "Alice Chen"
+ },
+ {
+  "id": "M04",
+  "class": "multihop",
+  "question": "Who owns the task that \"Add typo tolerance to product search\" directly depends on?",
+  "query": {
+   "start": "t8",
+   "select": [
+    "depends-on",
+    "owned-by"
+   ],
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 2
+   }
+  },
+  "extract": {
+   "kind": "hop2_title",
+   "edgeA": "depends-on",
+   "edgeB": "owned-by",
+   "from": "t8"
+  },
+  "answer_type": "scalar",
+  "answer": "Bob Marsh"
+ },
+ {
+  "id": "M05",
+  "class": "multihop",
+  "question": "Which source does the decision that \"Provision the EU data region\" depends on cite?",
+  "query": {
+   "start": "t13",
+   "select": [
+    "depends-on",
+    "cites"
+   ],
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 2
+   }
+  },
+  "extract": {
+   "kind": "hop2_title",
+   "edgeA": "depends-on",
+   "edgeB": "cites",
+   "from": "t13"
+  },
+  "answer_type": "scalar",
+  "answer": "User Research June"
+ },
+ {
+  "id": "M06",
+  "class": "multihop",
+  "question": "Which source does the decision that \"Integrate the Stripe checkout flow\" depends on cite?",
+  "query": {
+   "start": "t1",
+   "select": [
+    "depends-on",
+    "cites"
+   ],
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 2
+   }
+  },
+  "extract": {
+   "kind": "hop2_title",
+   "edgeA": "depends-on",
+   "edgeB": "cites",
+   "from": "t1"
+  },
+  "answer_type": "scalar",
+  "answer": "PCI Compliance Audit 2026"
+ },
+ {
+  "id": "M07",
+  "class": "multihop",
+  "question": "Which tasks directly depend on \"Rebuild the search indexing pipeline\"?",
+  "query": {
+   "start": "t7",
+   "select": "depends-on",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_source_titles",
+   "edge": "depends-on",
+   "to": "t7"
+  },
+  "answer_type": "list",
+  "answer": [
+   "Add typo tolerance to product search",
+   "Archive the old search cluster"
+  ]
+ },
+ {
+  "id": "M08",
+  "class": "multihop",
+  "question": "Which tasks directly depend on the decision \"Ship the EU region first\"?",
+  "query": {
+   "start": "d4",
+   "select": "depends-on",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_source_titles",
+   "edge": "depends-on",
+   "to": "d4"
+  },
+  "answer_type": "list",
+  "answer": [
+   "Cache hot queries at the edge",
+   "Provision the EU data region"
+  ]
+ },
+ {
+  "id": "M09",
+  "class": "multihop",
+  "question": "Which task does the question \"Do we need SOC2 certification before launch?\" block?",
+  "query": {
+   "start": "q1",
+   "select": "blocks",
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_target_titles",
+   "edge": "blocks",
+   "from": "q1"
+  },
+  "answer_type": "scalar",
+  "answer": "Run the penetration test"
+ },
+ {
+  "id": "M10",
+  "class": "multihop",
+  "question": "Who owns the task blocked by the question \"Can the exporter reuse the ledger schema?\"?",
+  "query": {
+   "start": "q2",
+   "select": [
+    "blocks",
+    "owned-by"
+   ],
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 2
+   }
+  },
+  "extract": {
+   "kind": "hop2_title",
+   "edgeA": "blocks",
+   "edgeB": "owned-by",
+   "from": "q2"
+  },
+  "answer_type": "scalar",
+  "answer": "Alice Chen"
+ },
+ {
+  "id": "M11",
+  "class": "multihop",
+  "question": "Which tasks must be completed before \"Ship the search relevance A/B test\", directly or through one intermediate dependency?",
+  "query": {
+   "start": "t10",
+   "select": "depends-on",
+   "direction": "forward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 3
+   }
+  },
+  "extract": {
+   "kind": "closure_titles",
+   "from": "t10"
+  },
+  "answer_type": "list",
+  "answer": [
+   "Add typo tolerance to product search",
+   "Rebuild the search indexing pipeline"
+  ]
+ },
+ {
+  "id": "M12",
+  "class": "multihop",
+  "question": "Which tasks are part of the goal \"EU Launch\"?",
+  "query": {
+   "start": "g1",
+   "select": "part-of",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "edge_source_titles",
+   "edge": "part-of",
+   "to": "g1"
+  },
+  "answer_type": "list",
+  "answer": [
+   "Localize the checkout UI for German",
+   "Provision the EU data region",
+   "Run the penetration test",
+   "Set up GDPR data-retention jobs"
+  ]
+ },
+ {
+  "id": "A01",
+  "class": "aggregate",
+  "question": "How many tasks have status \"todo\"?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "task",
+    "prop": [
+     [
+      "status",
+      "=",
+      "todo"
+     ]
+    ]
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 10
+ },
+ {
+  "id": "A02",
+  "class": "aggregate",
+  "question": "How many tasks have status \"done\"?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "task",
+    "prop": [
+     [
+      "status",
+      "=",
+      "done"
+     ]
+    ]
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 4
+ },
+ {
+  "id": "A03",
+  "class": "aggregate",
+  "question": "How many tasks have priority \"high\"?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "task",
+    "prop": [
+     [
+      "priority",
+      "=",
+      "high"
+     ]
+    ]
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 8
+ },
+ {
+  "id": "A04",
+  "class": "aggregate",
+  "question": "How many tasks does Alice Chen own?",
+  "query": {
+   "start": "p1",
+   "select": "owned-by",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "count_edges",
+   "edge": "owned-by",
+   "to": "p1"
+  },
+  "answer_type": "count",
+  "answer": 4
+ },
+ {
+  "id": "A05",
+  "class": "aggregate",
+  "question": "How many tasks does Dev Patel own?",
+  "query": {
+   "start": "p4",
+   "select": "owned-by",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "count_edges",
+   "edge": "owned-by",
+   "to": "p4"
+  },
+  "answer_type": "count",
+  "answer": 4
+ },
+ {
+  "id": "A06",
+  "class": "aggregate",
+  "question": "How many decisions have status \"accepted\"?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "decision",
+    "prop": [
+     [
+      "status",
+      "=",
+      "accepted"
+     ]
+    ]
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 3
+ },
+ {
+  "id": "A07",
+  "class": "aggregate",
+  "question": "How many questions have status \"open\"?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "question",
+    "prop": [
+     [
+      "status",
+      "=",
+      "open"
+     ]
+    ]
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 3
+ },
+ {
+  "id": "A08",
+  "class": "aggregate",
+  "question": "How many tasks does the Billing workstream contain?",
+  "query": {
+   "start": "ws1",
+   "select": "contains",
+   "filter": {
+    "type": "task"
+   },
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "count_children_of_type",
+   "type": "task"
+  },
+  "answer_type": "count",
+  "answer": 7
+ },
+ {
+  "id": "A09",
+  "class": "aggregate",
+  "question": "How many tasks are part of the goal \"EU Launch\"?",
+  "query": {
+   "start": "g1",
+   "select": "part-of",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "count_edges",
+   "edge": "part-of",
+   "to": "g1"
+  },
+  "answer_type": "count",
+  "answer": 4
+ },
+ {
+  "id": "A10",
+  "class": "aggregate",
+  "question": "How many tasks directly depend on the decision \"Ship the EU region first\"?",
+  "query": {
+   "start": "d4",
+   "select": "depends-on",
+   "direction": "backward",
+   "bound": {
+    "max_nodes": 50,
+    "max_depth": 1
+   }
+  },
+  "extract": {
+   "kind": "count_edges",
+   "edge": "depends-on",
+   "to": "d4"
+  },
+  "answer_type": "count",
+  "answer": 2
+ },
+ {
+  "id": "A11",
+  "class": "aggregate",
+  "question": "How many people (agents) are in the knowledge base?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "agent"
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 5
+ },
+ {
+  "id": "A12",
+  "class": "aggregate",
+  "question": "How many sources are in the knowledge base?",
+  "query": {
+   "select": "none",
+   "filter": {
+    "type": "source"
+   },
+   "bound": {
+    "max_nodes": 200
+   }
+  },
+  "extract": {
+   "kind": "count_nodes"
+  },
+  "answer_type": "count",
+  "answer": 3
+ }
+]

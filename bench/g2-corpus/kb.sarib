@@ -1,0 +1,244 @@
+---
+sarib: 0.1
+vocab: std@0.1
+title: Atlas Program KB
+---
+
+# Atlas Program KB {#atlas}
+
+## Goals {.section} ^sec-goals
+
+### EU Launch {.goal #eu-launch} ^g1
+target:: 2026-09-15
+
+## Decisions {.section} ^sec-dec
+
+### Choose Stripe as payment provider {.decision #choose-stripe} ^d1
+status:: accepted
+date:: 2026-05-10
+cites:: [[PCI Compliance Audit 2026]]
+
+Lower fees and stronger EU coverage than the incumbent.
+
+### Use event sourcing for the billing ledger {.decision #event-sourcing} ^d2
+status:: accepted
+date:: 2026-05-22
+cites:: [[Latency Report Q2]]
+
+Append-only ledger simplifies audit and replay.
+
+### Deprecate the legacy REST API {.decision #deprecate-rest} ^d3
+status:: proposed
+date:: 2026-06-03
+cites:: [[User Research June]]
+
+Interviewees rely on the new endpoints already.
+
+### Ship the EU region first {.decision #eu-first} ^d4
+status:: accepted
+date:: 2026-06-11
+cites:: [[User Research June]]
+
+Largest waitlisted cohort is in the EU.
+
+### Adopt Postgres 16 for the ledger store {.decision #postgres-16} ^d5
+status:: superseded
+date:: 2026-04-18
+cites:: [[Latency Report Q2]]
+
+Superseded by the event sourcing decision.
+
+## Open Questions {.section} ^sec-q
+
+### Do we need SOC2 certification before launch? {.question #soc2} ^q1
+status:: open
+
+Until answered this [blocks:: [[Run the penetration test]]].
+
+### Can the exporter reuse the ledger schema? {.question #exporter-schema} ^q2
+status:: open
+
+Until answered this [blocks:: [[Build the invoice PDF exporter]]].
+
+### Is the latency budget 200ms or 300ms? {.question #latency-budget} ^q3
+status:: resolved
+
+### Who signs the Stripe contract? {.question #stripe-contract} ^q4
+status:: open
+
+Until answered this [blocks:: [[Integrate the Stripe checkout flow]]].
+
+## Workstream: Billing {.section} ^ws1
+
+### Integrate the Stripe checkout flow {.task #stripe-checkout} ^t1
+status:: doing
+priority:: high
+due:: 2026-08-05
+owned-by:: [[Alice Chen]]
+
+Covers hosted checkout and webhook handling. Gated by [depends-on:: [[Choose Stripe as payment provider]]].
+
+### Migrate historical invoices to the ledger {.task #migrate-invoices} ^t2
+status:: todo
+priority:: high
+due:: 2026-08-20
+owned-by:: [[Alice Chen]]
+
+Backfill of roughly forty thousand historical invoices. Gated by [depends-on:: [[Integrate the Stripe checkout flow]]] and [depends-on:: [[Use event sourcing for the billing ledger]]].
+
+### Notify customers about the billing change {.task #notify-customers} ^t3
+status:: todo
+priority:: med
+due:: 2026-09-01
+owned-by:: [[Dev Patel]]
+
+Email plus in-app banner announcement. Gated by [depends-on:: [[Migrate historical invoices to the ledger]]].
+
+### Reconcile refunds against the old system {.task #reconcile-refunds} ^t4
+status:: todo
+priority:: low
+owned-by:: [[Dev Patel]]
+
+Reconciliation window is the last two fiscal years. Gated by [depends-on:: [[Migrate historical invoices to the ledger]]].
+
+### Build the invoice PDF exporter {.task #invoice-exporter} ^t5
+status:: todo
+priority:: med
+owned-by:: [[Alice Chen]]
+
+Exports must match the ledger totals exactly.
+
+### Set up billing alerts and dashboards {.task #billing-alerts} ^t6
+status:: done
+priority:: low
+owned-by:: [[Dev Patel]]
+
+Dashboards live in the shared observability space.
+
+### Localize the checkout UI for German {.task #localize-german} ^t18
+status:: todo
+priority:: med
+owned-by:: [[Alice Chen]]
+part-of:: [[EU Launch]]
+
+Covers currency, date formats, and checkout copy. Gated by [depends-on:: [[Integrate the Stripe checkout flow]]].
+
+## Workstream: Search {.section} ^ws2
+
+### Rebuild the search indexing pipeline {.task #search-indexing} ^t7
+status:: doing
+priority:: high
+due:: 2026-08-12
+owned-by:: [[Bob Marsh]]
+
+Replaces the nightly batch indexer with streaming updates.
+
+### Add typo tolerance to product search {.task #typo-tolerance} ^t8
+status:: todo
+priority:: med
+owned-by:: [[Bob Marsh]]
+
+Uses edit-distance matching for product names. Gated by [depends-on:: [[Rebuild the search indexing pipeline]]].
+
+### Benchmark query latency at ten times load {.task #latency-benchmark} ^t9
+status:: done
+priority:: high
+owned-by:: [[Bob Marsh]]
+
+Load profile mirrors the June traffic snapshot.
+
+### Ship the search relevance A/B test {.task #relevance-ab} ^t10
+status:: todo
+priority:: med
+owned-by:: [[Dev Patel]]
+
+Experiment runs on ten percent of traffic. Gated by [depends-on:: [[Add typo tolerance to product search]]].
+
+### Archive the old search cluster {.task #archive-cluster} ^t11
+status:: todo
+priority:: low
+owned-by:: [[Bob Marsh]]
+
+Cluster is kept read-only for thirty days first. Gated by [depends-on:: [[Rebuild the search indexing pipeline]]].
+
+### Cache hot queries at the edge {.task #edge-cache} ^t12
+status:: doing
+priority:: med
+owned-by:: [[Carol Diaz]]
+
+Cache keys include region and locale. Gated by [depends-on:: [[Ship the EU region first]]].
+
+## Workstream: Platform {.section} ^ws3
+
+### Provision the EU data region {.task #eu-region} ^t13
+status:: doing
+priority:: high
+due:: 2026-08-01
+owned-by:: [[Carol Diaz]]
+part-of:: [[EU Launch]]
+
+Region is provisioned in Frankfurt. Gated by [depends-on:: [[Ship the EU region first]]].
+
+### Set up GDPR data-retention jobs {.task #gdpr-retention} ^t14
+status:: todo
+priority:: high
+due:: 2026-08-25
+owned-by:: [[Erin Fox]]
+part-of:: [[EU Launch]]
+
+Retention defaults to ninety days for event data. Gated by [depends-on:: [[Provision the EU data region]]].
+
+### Run the penetration test {.task #pentest} ^t15
+status:: todo
+priority:: high
+owned-by:: [[Erin Fox]]
+part-of:: [[EU Launch]]
+
+Scope covers the public API and the admin console.
+
+### Automate blue-green deploys {.task #blue-green} ^t16
+status:: done
+priority:: med
+owned-by:: [[Carol Diaz]]
+
+Cutover rehearsed in the staging environment.
+
+### Rotate all production secrets {.task #rotate-secrets} ^t17
+status:: done
+priority:: high
+owned-by:: [[Erin Fox]]
+
+Rotation includes database and third-party credentials.
+
+## People {.section} ^sec-people
+
+### Alice Chen {.agent #alice-chen} ^p1
+role:: backend engineer
+team:: Billing
+
+### Bob Marsh {.agent #bob-marsh} ^p2
+role:: data engineer
+team:: Search
+
+### Carol Diaz {.agent #carol-diaz} ^p3
+role:: platform engineer
+team:: Platform
+
+### Dev Patel {.agent #dev-patel} ^p4
+role:: product manager
+team:: Billing
+
+### Erin Fox {.agent #erin-fox} ^p5
+role:: security engineer
+team:: Platform
+
+## Sources {.section} ^sec-src
+
+### PCI Compliance Audit 2026 {.source #pci-audit} ^s1
+origin:: external audit report, May 2026
+
+### Latency Report Q2 {.source #latency-report} ^s2
+origin:: internal measurement, June 2026
+
+### User Research June {.source #user-research} ^s3
+origin:: twelve customer interviews

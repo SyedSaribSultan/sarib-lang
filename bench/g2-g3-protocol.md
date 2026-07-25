@@ -35,6 +35,15 @@ Write-side economy is already gated: **G1 measured 0.50%** (50-token guarded op 
 
 ## Status
 
-- G2: token side **indicatively strong** (above); accuracy side **open — blocked on API run**.
+- G2: **measured run live (2026-07-20)** — corpora, constructed ground truth, cross-model
+  runner + significance tests in `bench/g2-corpus/` + `bench/run_g2.py`; results matrix in
+  `bench/g2-results.md`. 2/7 models complete (local tier); API models quota-gated to daily
+  resets. Interim finding: the S4 win appears at 7B (C>A, p=0.002, 3.5× fewer tokens) but
+  not at 3B (C<A, n.s.) — and whole-file `.sarib` beats Markdown on neither, confirming the
+  D-002 framing (the win is bounded retrieval, not surface syntax in context).
+- G2 protocol deltas vs the sketch above: 36 questions (not 30) on one purpose-built ~1.8k-token
+  corpus emitted 3 ways from one fact table; a 4th condition (D, types-stripped ablation)
+  separates structure from retrieval; ground truth constructed via `sarib query` + fact-table
+  cross-check; 3 runs/cell.
 - G3: **open — blocked on human raters.**
-- These are the only two gates not yet green; both are execution logistics, not design questions.
+- Both remaining gates are execution logistics, not design questions.

@@ -119,7 +119,7 @@ def main():
 
     report += ["## G2/G3/G8 status",
                "- G8 glyphs: PASS on GPT-family (bench/tokenizer-report.md); open-weight re-run pending.",
-               "- G2 agent accuracy: protocol + indicative self-test → bench/g2-g3-protocol.md.",
+               "- G2 agent accuracy: measured cross-model run → bench/g2-results.md (runner: bench/run_g2.py).",
                "- G3 human readability: protocol (needs human raters) → bench/g2-g3-protocol.md.", ""]
     ok = all([g1, g4, g5, g6, g7])
     report.append(f"**Programmatic gates: {'ALL PASS' if ok else 'FAILURES PRESENT'}** (G1,G4,G5,G6,G7)")

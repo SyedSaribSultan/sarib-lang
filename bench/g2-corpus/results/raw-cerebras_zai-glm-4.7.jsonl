@@ -1,0 +1,1 @@
+{"meta": {"provider": "cerebras", "model": "zai-glm-4.7", "pin": "", "base_url": "https://api.cerebras.ai/v1", "temperature": 0, "seed": 42, "runs": 3, "date": "2026-07-20"}}
