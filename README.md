@@ -54,7 +54,7 @@ requirement, and an independent entailment check on every edge; anything unsuppo
 and kept edges carry `inferred` provenance. It is high-precision and deliberately conservative —
 **assisted, verified extraction, not a perfect automatic graph.** (Uses a local Ollama model by
 default; `--model` / `--endpoint` to point elsewhere. Method + citations:
-[`market/importer-extraction-research.md`](market/importer-extraction-research.md).)
+[`research/importer-extraction.md`](research/importer-extraction.md).)
 
 **See it, not just read it:** `python tools/preview.py knowledge.sarib` (from a repo clone) opens a local page with every projection as tabs — document, outline, board, dependency graph, canonical machine form.
 

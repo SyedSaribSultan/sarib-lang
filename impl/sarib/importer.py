@@ -9,8 +9,8 @@ Two layers, both emitting valid, round-trippable .sarib:
                        stable slug ids + the containment tree; existing [[wikilinks]] and
                        [rel:: [[x]]] refs are preserved by the parser. No LLM, no network.
 
-  --extract-edges      constrained + verified edge extraction (market/importer-extraction-
-                       research.md). Boxed so a model can only SELECT, never invent:
+  --extract-edges      constrained + verified edge extraction (research/importer-extraction.md).
+                       Boxed so a model can only SELECT, never invent:
                          L1 closed vocab + existing-slug targets   (JSON-schema enum)
                          L2 constrained decoding                    (Ollama `format`=schema)
                          L3 span-grounding                          (quote must be verbatim)

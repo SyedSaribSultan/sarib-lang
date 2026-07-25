@@ -10,3 +10,6 @@ HANDOFF.json
 .mcp.json
 .env
 scratch_import/
+market/
+examples/C-fitsmart-company.sarib
+bench/G2-WORKING-CONTEXT.md

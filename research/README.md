@@ -13,6 +13,8 @@ Raw evidence feeding the staged deliverables. One file per format family or rese
 | `versioning-and-merge.md` | Git object model, human-visible IDs, CRDTs (Shapiro, Automerge/Yjs), OT vs CRDT, Datomic, event sourcing, JSON Patch, structured merge | RQ1, RQ6 | ✓ done |
 | `syntax-and-legibility.md` | Information foraging/scent, spatial memory, outliner fold/breadcrumb affordances, tree shape/size notations (org cookies), skeleton-of-thought/RAPTOR, glyph tokenization, emphasis encoding, Markdown-superset extension (djot, MyST, Pandoc attrs, Dataview inline fields) | Phase D / Stage 10 (author-facing syntax) | ✓ done |
 
-All eight research files are now complete. Sub-topics also appear inside sibling files (identity via Wikidata in `semantic-web.md` and Notion/Roam/org in `tools-for-thought.md`; property-graph rationale via `semantic-web.md` §6; line-based-merge pain via `tools-for-thought.md`'s jupytext/nbdev sections), and are cross-referenced from the two new files. See `stages/02-prior-art.md` §7 for how these close the remaining gaps.
+A ninth file, `importer-extraction.md`, was added later (2026-07-25): cited evidence that constrained, span-grounded, verify-then-commit LLM extraction can build graph edges without fabrication — the method behind `sarib import --extract-edges`.
+
+All eight original research files are complete. Sub-topics also appear inside sibling files (identity via Wikidata in `semantic-web.md` and Notion/Roam/org in `tools-for-thought.md`; property-graph rationale via `semantic-web.md` §6; line-based-merge pain via `tools-for-thought.md`'s jupytext/nbdev sections), and are cross-referenced from the two new files. See `stages/02-prior-art.md` §7 for how these close the remaining gaps.
 
 Notes are working documents — messy is fine here. Synthesis happens in `stages/`.

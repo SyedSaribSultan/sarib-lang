@@ -2,7 +2,7 @@
 
 Question: can a WEAK local model (qwen2.5:7b) propose typed edges over a real .sarib
 corpus WITHOUT fabricating them, if we constrain it hard? If yes, the safety comes from
-the constraints, not the model — which is the whole thesis (market/importer-extraction-research.md).
+the constraints, not the model — which is the whole thesis (research/importer-extraction.md).
 
 Pipeline layers exercised here:
   L1 closed vocab + existing-ids-only : enforced via a JSON-schema `enum` on type AND target
