@@ -25,7 +25,10 @@ jobs:
       - name: Conformance corpus (round-trip + idempotence)
         working-directory: impl
         run: python tests/run_corpus.py
+      # The `mcp` SDK requires Python >=3.10, so the containment test can only run there.
+      # The core stays 3.9-compatible and is covered by the corpus + CLI steps on every version.
       - name: MCP path containment (must hold under -O, where asserts vanish)
+        if: matrix.python-version != '3.9'
         run: |
           pip install "./impl[mcp]"
           python    impl/tests/test_mcp_containment.py

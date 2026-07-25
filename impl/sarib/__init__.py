@@ -7,4 +7,4 @@ from .render import fmt, VIEWS
 from .ops import apply, fold, OpRejected
 from .query import query
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"

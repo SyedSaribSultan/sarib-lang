@@ -100,7 +100,7 @@ default; `--model` / `--endpoint` to point elsewhere. Method + citations:
 **Agent-native:** the MCP server gives any MCP client (Claude Desktop, Claude Code, Cursor, …) five tools over a folder of `.sarib` files: `sarib_query / sarib_apply / sarib_render / sarib_validate / sarib_canon`.
 
 ```bash
-pip install "sarib[mcp]"   # adds the MCP server
+pip install "sarib[mcp]"   # adds the MCP server (needs Python 3.10+; the core runs on 3.9)
 ```
 
 Then register it with your client (Claude Desktop: `claude_desktop_config.json`; Claude Code: a project `.mcp.json`):
