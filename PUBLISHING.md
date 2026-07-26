@@ -25,14 +25,22 @@ GitHub Release still carries **`vscode-sarib-0.2.0.vsix`** (old, workspace-scann
 both are republished, a new user who follows the README gets the old broken behavior — the extension
 detects that exact case and tells them to upgrade, but it cannot fix it for them.
 
-1. **Commit + tag:** `git tag v0.1.4 && git push origin main --tags`.
-2. **Publish the package:** create a GitHub Release for `v0.1.4` → `release.yml` builds `impl/` and
-   publishes to PyPI via Trusted Publishing (OIDC, environment `pypi`, no stored token). Verify:
-   `pip index versions sarib` shows 0.1.4, and in a clean venv
-   `pip install sarib && python -m sarib.preview <f>.sarib --stdout` prints HTML.
-3. **Attach the extension:** `cd editors/vscode-sarib && npx @vscode/vsce package`, then attach
-   `vscode-sarib-0.3.0.vsix` to that same Release (the `.vsix` is gitignored — Releases is its only
-   distribution channel). Remove or clearly supersede the 0.2.0 asset so nobody installs it.
-4. **Release notes, one line each:** preview runs from any folder via the installed package
-   (`pip install sarib`, no checkout, no `sarib.previewScript`); extension 0.3.0 resolves
-   setting → checkout above the file → workspace folder → installed package.
+1. ~~**Commit + tag**~~ — done: `02ea8f9` on `main`, tag `v0.1.4` pushed. The tag alone publishes
+   nothing: `release.yml` fires on *release published* (or manual dispatch), not on tags.
+2. ~~**Build the `.vsix`**~~ — done: `editors/vscode-sarib/vscode-sarib-0.3.0.vsix` (gitignored, so
+   a Release asset is its only distribution channel), installed locally as `sarib.vscode-sarib@0.3.0`.
+3. **Publish — the one step left.** Creates the Release, which triggers `release.yml` → builds
+   `impl/` → PyPI via Trusted Publishing (OIDC, environment `pypi`, no stored token):
+   ```bash
+   gh release create v0.1.4 --title "sarib 0.1.4 — preview in any folder" \
+     --notes-file <notes.md> editors/vscode-sarib/vscode-sarib-0.3.0.vsix
+   ```
+   Notes to use: preview runs from any folder via the installed package (`pip install "sarib>=0.1.4"`
+   — no checkout, no `sarib.previewScript`); extension 0.3.0 resolves setting → checkout above the
+   open file → workspace folder → installed package.
+4. **Verify, don't assume:** `gh run list` shows the `release` workflow green; `pip index versions
+   sarib` lists 0.1.4; in a clean venv `pip install "sarib>=0.1.4"` then
+   `python -m sarib.preview <f>.sarib --stdout` prints HTML from a directory that is not a checkout.
+5. **Supersede the stale asset:** the `v0.1` Release still carries `vscode-sarib-0.2.0.vsix`, whose
+   resolver only scans workspace folders. Delete it or note in that release's body that 0.3.0 on
+   `v0.1.4` replaces it — otherwise README readers can still install the broken one.
