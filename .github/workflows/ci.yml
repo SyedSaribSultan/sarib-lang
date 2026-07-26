@@ -63,7 +63,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20" }
       - name: Real tokenizer (the gate runner aborts rather than estimate)
-        run: npm i gpt-tokenizer
+        run: npm ci   # lockfile-pinned, so the gate's token counts are reproducible
       - name: Programmatic freeze gates (G1, G4, G5, G6, G7)
         run: python bench/run_gates.py
       - name: Fail if any gate regressed

@@ -7,9 +7,9 @@ Conditions: **A** whole kb.md · **B** whole kb.sarib · **C** bounded query res
 ## Incomplete models (rate-capped; excluded from all averages and the verdict)
 
 - `gemini/gemini-3-flash-preview`: 20/432 cells cached — resume with `python bench/run_g2.py run --providers gemini`
-- `gemini/gemini-3.5-flash`: 49/432 cells cached — resume with `python bench/run_g2.py run --providers gemini`
-- `groq/llama-3.3-70b-versatile`: 245/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
-- `groq/qwen/qwen3.6-27b`: 357/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
+- `gemini/gemini-3.5-flash`: 62/432 cells cached — resume with `python bench/run_g2.py run --providers gemini`
+- `groq/llama-3.3-70b-versatile`: 249/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
+- `groq/qwen/qwen3.6-27b`: 361/432 cells cached — resume with `python bench/run_g2.py run --providers groq`
 - `openrouter/nvidia/nemotron-3-super-120b-a12b:free`: 215/432 cells cached — resume with `python bench/run_g2.py run --providers openrouter`
 
 ## Matrix (live models)

@@ -1,0 +1,8 @@
+{
+  "name": "sarib-bench",
+  "private": true,
+  "description": "Not a package — pins the tokenizer the gate runner measures with (G1/G7 abort rather than estimate), so token counts are reproducible from the lockfile.",
+  "dependencies": {
+    "gpt-tokenizer": "^3.4.0"
+  }
+}
