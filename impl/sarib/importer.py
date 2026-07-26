@@ -1,6 +1,6 @@
 """sarib.importer — prose/markdown -> a .sarib knowledge graph. The adoption on-ramp.
 
-A CONSUMER of the model (like tools/preview.py and the MCP server); it lives OUTSIDE the
+A CONSUMER of the model (like preview.py and the MCP server); it lives OUTSIDE the
 <=1000 LOC parser core (G4), so it does not affect that budget.
 
 Two layers, both emitting valid, round-trippable .sarib:

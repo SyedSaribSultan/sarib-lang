@@ -2,7 +2,7 @@
   "name": "vscode-sarib",
   "displayName": "sarib",
   "description": "Syntax highlighting for .sarib knowledge files (Markdown superset).",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "sarib",
   "license": "MIT",
   "engines": { "vscode": "^1.60.0" },
@@ -45,7 +45,7 @@
         "sarib.previewScript": {
           "type": "string",
           "default": "",
-          "description": "Absolute path to tools/preview.py. Leave empty to auto-detect it in the workspace folders."
+          "description": "Absolute path to a repo checkout's tools/preview.py. Leave empty to auto-detect: a sarib checkout above the open file or in the workspace folders, else the installed `sarib` Python package (works in any folder)."
         }
       }
     },

@@ -44,6 +44,15 @@ jobs:
           sarib query    demo.sarib --type task
           sarib query    demo.sarib --from t1 --edges depends-on
           sarib set      demo.sarib t1 status=done --dry-run
+      # The previewer ships in the package so the editor extension can run it from ANY folder
+      # (`python -m sarib.preview`) with no checkout. Both entry points are the extension's
+      # contract with an installed package — assert them from a neutral cwd, not the repo.
+      - name: Previewer smoke — the entry points the editor extension calls
+        run: |
+          cd "$(mktemp -d)"
+          printf '# Q3\n\n## Migrate invoices {.task} ^t1\nstatus:: todo\n' > p.sarib
+          sarib-preview p.sarib --stdout            | grep -q "sarib preview"
+          python -m sarib.preview - --stdout < p.sarib | grep -q "<!doctype html"
 
   gates:
     runs-on: ubuntu-latest

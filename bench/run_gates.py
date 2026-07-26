@@ -83,10 +83,11 @@ def main():
 
     # ---- G4: implementability ----
     # Scope: the CONFORMANCE surface (S6 = "a conforming parser is a weekend's work") plus the
-    # thin transports. `importer.py` is an adoption CONSUMER — nothing in the spec requires an
-    # importer, and --extract-edges needs an external model — so it is reported, not budgeted
-    # (same status as tools/preview.py, which lives outside the package).
-    CONSUMERS = {"importer.py"}
+    # thin transports. `importer.py` and `preview.py` are adoption CONSUMERS — nothing in the
+    # spec requires an importer or an HTML previewer, and --extract-edges needs an external
+    # model — so they are reported, not budgeted. (preview.py moved into the package so the
+    # editor extension can run it from any folder; its accounting status did not change.)
+    CONSUMERS = {"importer.py", "preview.py"}
 
     def _loc(fs):
         return sum(1 for f in fs for line in f.read_text(encoding="utf-8").splitlines()

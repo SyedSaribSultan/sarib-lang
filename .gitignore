@@ -3,6 +3,8 @@ __pycache__/
 node_modules/
 .DS_Store
 *.egg-info/
+build/
+dist/
 .venv/
 *.vsix
 *.preview.html

@@ -95,7 +95,7 @@ and kept edges carry `inferred` provenance. It is high-precision and deliberatel
 default; `--model` / `--endpoint` to point elsewhere. Method + citations:
 [`research/importer-extraction.md`](research/importer-extraction.md).)
 
-**See it, not just read it:** `python tools/preview.py knowledge.sarib` (from a repo clone) opens a local page with every projection as tabs — document, outline, board, dependency graph, canonical machine form.
+**See it, not just read it:** `sarib-preview knowledge.sarib` (or `python -m sarib.preview …`; ships with the pip package, so it works in any folder) opens a local page with every projection as tabs — document, outline, board, dependency graph, canonical machine form. The VS Code extension shows the same page live beside the editor (`Ctrl+Shift+V`).
 
 **Agent-native:** the MCP server gives any MCP client (Claude Desktop, Claude Code, Cursor, …) five tools over a folder of `.sarib` files: `sarib_query / sarib_apply / sarib_render / sarib_validate / sarib_canon`.
 
@@ -113,7 +113,7 @@ Then register it with your client (Claude Desktop: `claude_desktop_config.json`;
 
 Restart the client, approve the server, and just talk: *"which tasks are open?"* runs a bounded query; *"mark t1 done"* applies one id-addressed op — the file changes by a delta, never a rewrite.
 
-**VS Code:** `editors/vscode-sarib/` ships syntax highlighting plus a live preview panel (`Ctrl+Shift+V`). Install the prebuilt `.vsix` from Releases, or build it: `npx @vscode/vsce package && code --install-extension vscode-sarib-0.2.0.vsix`.
+**VS Code:** `editors/vscode-sarib/` ships syntax highlighting plus a live preview panel (`Ctrl+Shift+V`). Install the prebuilt `.vsix` from Releases, or build it: `npx @vscode/vsce package && code --install-extension vscode-sarib-0.3.0.vsix`. The panel calls the previewer from the installed package, so `pip install "sarib>=0.1.4"` is all it needs — `.sarib` files preview in any folder, no clone, no configuration.
 
 ## The design, in five commitments
 

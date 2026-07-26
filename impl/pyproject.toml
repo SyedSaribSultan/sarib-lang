@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sarib"
-version = "0.1.3"
+version = "0.1.4"
 description = "Reference implementation of the .sarib knowledge language: query bounded subgraphs and apply id-addressed atomic edits over plain-text knowledge."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -27,6 +27,7 @@ mcp = ["mcp>=1.0"]   # requires Python >=3.10
 [project.scripts]
 sarib = "sarib.cli:main"
 sarib-mcp = "sarib.mcp_server:main"
+sarib-preview = "sarib.preview:main"
 
 [project.urls]
 Homepage = "https://github.com/SyedSaribSultan/sarib-lang"

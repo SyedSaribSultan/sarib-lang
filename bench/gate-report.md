@@ -1,6 +1,6 @@
 # Freeze-gate run — programmatic gates
 
-Date: 2026-07-25 · impl v0.1.2 · tokens = o200k (offline gpt-tokenizer)
+Date: 2026-07-26 · impl v0.1.4 · tokens = o200k (offline gpt-tokenizer)
 
 ## G1 · Edit economy (target: op ≤1% of regeneration)
 - KB size: 10042 tokens (301 nodes)
@@ -10,7 +10,7 @@ Date: 2026-07-25 · impl v0.1.2 · tokens = o200k (offline gpt-tokenizer)
 ## G4 · Implementability (target: ≤1000 LOC, one weekend)
 - Non-blank/non-comment LOC, conformance surface + transports (parser+canon+model+ops+query+render+cli+mcp): 933
 - **PASS** (budget was for the parser alone)
-- Reported separately, outside the budget: consumers (importer.py) = 249 LOC
+- Reported separately, outside the budget: consumers (importer.py, preview.py) = 455 LOC
 
 ## G5 · Merge safety (SEC: any op order → same state; target: 1 state, 0 corruption)
 - 4 concurrent ops × 24 permutations → **1 distinct state(s) → PASS**
