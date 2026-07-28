@@ -132,6 +132,31 @@ class Doc:
                 diags.append(f"invariant3: edge {e.id} dangling target {e.target}")
         return diags
 
+    # Op-time validation, scoped to the ids one op touched (D-065).
+    # WHY LOCAL: a whole-document check after every op meant that a file which already
+    # carried ANY unrelated violation — two headings sharing one {#slug}, say — rejected
+    # *every* operation, including the one that would repair it. That locked an author out
+    # of their own file. Full-document validation stays in check_invariants(), which is what
+    # `sarib validate` and load-time run.
+    # WHY THIS IS THE WHOLE SURFACE: ops cannot mint a slug (no op takes one), and cannot
+    # leave an edge dangling (create-node/move/add-edge/merge each guard their endpoints
+    # inline and raise before mutating). That leaves invariant 2 — parent exists, and the
+    # ancestor chain terminates — which is what this checks.
+    def check_touched(self, ids) -> list:
+        diags = []
+        for nid in ids:
+            n = self.nodes.get(nid)
+            if n is None:
+                continue
+            if n.parent is not None and n.parent not in self.nodes:
+                diags.append(f"invariant2: node {n.id} has missing parent {n.parent}")
+            hops, p = 0, n.parent
+            while p is not None and p in self.nodes and hops <= len(self.nodes):
+                p, hops = self.nodes[p].parent, hops + 1
+            if hops > len(self.nodes):
+                diags.append(f"invariant2: containment cycle at {n.id}")
+        return diags
+
 
 def anchor_owner(doc: "Doc", nid: str) -> str:
     """Edges anchored in an untitled prose block bubble up to the nearest titled

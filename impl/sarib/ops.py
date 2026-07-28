@@ -33,6 +33,7 @@ def apply(doc: Doc, op: dict) -> Doc:
     """Apply one op, preserving the 10 invariants (D-035). Mutates and returns doc."""
     _check_expect(doc, op)
     kind, t, a = op["kind"], op.get("target"), op.get("args", {})
+    touched = {t} if t else set()      # ids whose invariants this op could disturb (D-065)
 
     if kind == "create-node":
         nid = a.get("id") or f"n{len(doc.nodes) + 1}x"
@@ -48,6 +49,7 @@ def apply(doc: Doc, op: dict) -> Doc:
                  provenance=op.get("provenance"))
         doc.nodes[nid] = n
         doc.touch()
+        touched |= {nid, parent}
     elif kind == "retract-node":
         doc.nodes[t].status = "retracted"                               # P12: never destroy
         doc.touch()
@@ -86,8 +88,11 @@ def apply(doc: Doc, op: dict) -> Doc:
                              # must already see the reparenting (as the old live scan did)
         doc.nodes[t].order = a.get("order", len(doc.children(a["parent"])))
         doc.touch()
+        touched.add(a["parent"])
     elif kind == "merge":                                                # composite (D-035)
         loser, winner = t, a["into"]
+        if winner not in doc.nodes:                                   # invariant 3
+            raise OpRejected(f"merge: target {winner} missing")
         doc.nodes[loser].status = "retracted"
         doc.edges[f"e-merge-{loser}"] = Edge(id=f"e-merge-{loser}", type="merged-into",
                                              source=loser, target=winner)
@@ -104,11 +109,12 @@ def apply(doc: Doc, op: dict) -> Doc:
     obj = doc.nodes.get(t) or doc.edges.get(t) if t else None
     if obj is not None:
         obj.version += 1
-    # Still a FULL check per op: measured, narrowing it to the touched ids bought nothing
-    # once the cycle check became O(N) amortized, and it would have changed *when* a
-    # violation is detected. Per-op cost is O(N+E); see bench/scale-report.md §4 and the
-    # two deferred follow-ups in plans/01-scale-remediation.md §10.
-    diags = doc.check_invariants()
+    # Scoped to the ids this op touched (D-065). This is a CORRECTNESS fix, not a speed one:
+    # the previous whole-document check meant any pre-existing unrelated violation rejected
+    # every op, including the repair. Every rejection message above comes from an inline guard,
+    # so narrowing this changes no rejection anyone can observe. `sarib validate` and load
+    # still run the full check_invariants().
+    diags = doc.check_touched(touched)
     if diags:
         raise OpRejected(f"op would break invariants: {diags}")          # RM14: closed op set
     return doc

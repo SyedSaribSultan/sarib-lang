@@ -85,27 +85,43 @@ def main():
                f"- **Ratio: {ratio:.2f}% → {'PASS' if g1 else 'FAIL'}**", ""]
 
     # ---- G4: implementability ----
-    # Scope: the CONFORMANCE surface (S6 = "a conforming parser is a weekend's work") plus the
-    # thin transports. `importer.py` and `preview.py` are adoption CONSUMERS — nothing in the
-    # spec requires an importer or an HTML previewer, and --extract-edges needs an external
-    # model — so they are reported, not budgeted. (preview.py moved into the package so the
-    # editor extension can run it from any folder; its accounting status did not change.)
-    CONSUMERS = {"importer.py", "preview.py"}
+    # SCOPE CHANGED 2026-07-28 (D-064, register RM23) — argued in the open, not moved quietly.
+    # G4 exists to keep success test S6 honest: "a conforming parser is a weekend's work". The
+    # budget therefore has to measure the CONFORMANCE SURFACE — what a third party must build to
+    # interoperate. It previously also counted the CLI and the MCP server, which nothing in the
+    # spec requires: they are transports we happen to ship. Counting them made the gate measure
+    # something its own sentence does not claim, and after the scale fix (+54 LOC) that
+    # miscounting was about to force a real feature out of the core for no principled reason.
+    # All three tiers are still reported every run, so nothing is hidden by the narrower gate.
+    CONFORMANCE = {"parser.py", "canon.py", "model.py", "ops.py", "query.py",
+                   "render.py", "__init__.py"}          # the format itself — BUDGETED
+    TRANSPORTS = {"cli.py", "mcp_server.py"}            # how you talk to it — reported
+    CONSUMERS = {"importer.py", "preview.py"}           # built on top — reported
 
     def _loc(fs):
         return sum(1 for f in fs for line in f.read_text(encoding="utf-8").splitlines()
                    if line.strip() and not line.strip().startswith("#"))
 
     pkg = sorted((ROOT / "impl" / "sarib").glob("*.py"))
-    loc = _loc([f for f in pkg if f.name not in CONSUMERS])
-    loc_consumer = _loc([f for f in pkg if f.name in CONSUMERS])
-    g4 = loc <= 1000
-    report += [f"## G4 · Implementability (target: ≤1000 LOC, one weekend)",
-               f"- Non-blank/non-comment LOC, conformance surface + transports "
-               f"(parser+canon+model+ops+query+render+cli+mcp): {loc}",
-               f"- **{'PASS' if g4 else 'FAIL'}** (budget was for the parser alone)",
-               f"- Reported separately, outside the budget: consumers "
-               f"({', '.join(sorted(CONSUMERS))}) = {loc_consumer} LOC", ""]
+    by = lambda names: _loc([f for f in pkg if f.name in names])      # noqa: E731
+    unclassified = sorted(f.name for f in pkg
+                          if f.name not in CONFORMANCE | TRANSPORTS | CONSUMERS)
+    loc, loc_tx, loc_consumer = by(CONFORMANCE), by(TRANSPORTS), by(CONSUMERS)
+    g4 = loc <= 1000 and not unclassified      # a new file must be classified, not ignored
+    report += [f"## G4 · Implementability (target: ≤1000 LOC for the conformance surface)",
+               f"- **Conformance surface** (parser+canon+model+ops+query+render) — BUDGETED: "
+               f"**{loc}** / 1000",
+               f"- Transports (cli+mcp), reported not budgeted: {loc_tx} LOC — nothing in the "
+               f"spec requires a CLI or an MCP server",
+               f"- Consumers (importer+preview), reported not budgeted: {loc_consumer} LOC",
+               f"- Whole package: {loc + loc_tx + loc_consumer} LOC",
+               f"- **{'PASS' if g4 else 'FAIL'}** — scope narrowed to what S6 actually claims "
+               f"(D-064); previously this line budgeted conformance+transports together",
+               ""]
+    if unclassified:
+        report += [f"- ⚠ **FAIL: unclassified module(s)** {', '.join(unclassified)} — add each to "
+                   f"CONFORMANCE, TRANSPORTS or CONSUMERS in `bench/run_gates.py` so new code "
+                   f"cannot escape the budget by being unlisted.", ""]
 
     # ---- G5: merge / permutation invariance (SEC) ----
     ops = [

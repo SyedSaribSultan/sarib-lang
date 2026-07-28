@@ -114,18 +114,27 @@ def measure_src(src: str, reps: int = 3) -> dict:
     row["query-graph"] = ms(lambda: query(doc, {
         "start": root, "select": "any", "direction": "both"}), reps)[0]
 
-    # per-op edit cost: the G1 point edit, and a structural op
+    # Per-op edit cost: the G1 point edit, and a structural op. Timed over a BATCH and
+    # divided — since op-time validation became local (D-065) a point edit is faster than
+    # perf_counter's resolution, and a single-shot timing reads 0.0ms and then trips the
+    # monotonicity guard on pure noise.
+    OP_BATCH = 200
     tgt = next(nid for nid, v in doc.nodes.items() if v.type == "task")
-    row["op-set-property"] = ms(lambda: apply_op(doc, {
-        "kind": "set-property", "target": tgt,
-        "args": {"key": "status", "value": "done"}}), reps)[0]
+
+    def set_prop_batch():
+        for i in range(OP_BATCH):
+            apply_op(doc, {"kind": "set-property", "target": tgt,
+                           "args": {"key": "status", "value": "done" if i % 2 else "todo"}})
+    row["op-set-property"] = ms(set_prop_batch, reps)[0] / OP_BATCH
+
     ctr = [0]
 
-    def mk():
-        ctr[0] += 1
-        return apply_op(doc, {"kind": "create-node",
-                              "args": {"id": f"probe{ctr[0]}", "title": "p", "parent": root}})
-    row["op-create-node"] = ms(mk, reps)[0]
+    def create_batch():
+        for _ in range(OP_BATCH):
+            ctr[0] += 1
+            apply_op(doc, {"kind": "create-node",
+                           "args": {"id": f"probe{ctr[0]}", "title": "p", "parent": root}})
+    row["op-create-node"] = ms(create_batch, reps)[0] / OP_BATCH
     return row
 
 
@@ -199,12 +208,16 @@ def contamination(rows, metrics) -> list:
     loaded during the run, not that the code got faster. Learned the hard way — a report
     generated while a subagent fleet was running showed walk() at 253ms for 37k nodes and
     64ms for 125k, and the resulting slopes (1.35-1.50) were pure noise."""
+    FLOOR_MS = 0.05          # below perf_counter's useful resolution: noise, not signal
     bad = []
     for m in metrics:
         for i in range(1, len(rows)):
-            if rows[i][m] < rows[i - 1][m] * 0.9:      # 10% slack for timer jitter
-                bad.append(f"{m}: {rows[i - 1]['nodes']:,}n={rows[i - 1][m]:.1f}ms but "
-                           f"{rows[i]['nodes']:,}n={rows[i][m]:.1f}ms (larger input, faster)")
+            prev, cur = rows[i - 1][m], rows[i][m]
+            if prev < FLOOR_MS and cur < FLOOR_MS:
+                continue     # both sub-resolution; an "inversion" here is meaningless
+            if cur < prev * 0.9:                       # 10% slack for timer jitter
+                bad.append(f"{m}: {rows[i - 1]['nodes']:,}n={prev:.3f}ms but "
+                           f"{rows[i]['nodes']:,}n={cur:.3f}ms (larger input, faster)")
     return bad
 
 
@@ -212,8 +225,12 @@ def table(rows, metrics) -> list:
     head = "| path | " + " | ".join(f"{r['nodes']:,}n" for r in rows) + " | slope |"
     out = [head, "|---" * (len(rows) + 2) + "|"]
     sizes = [r["nodes"] for r in rows]
+    def cell(v):
+        # a point edit is now sub-0.05ms, so one decimal renders it as a useless "0.0"
+        return f"{v:,.3f}" if v < 0.1 else f"{v:,.1f}"
+
     for m in metrics:
-        cells = " | ".join(f"{r[m]:,.1f}" for r in rows)
+        cells = " | ".join(cell(r[m]) for r in rows)
         out.append(f"| {m} | {cells} | **{slope(sizes, [r[m] for r in rows]):.2f}** |")
     return out
 
@@ -330,11 +347,12 @@ def main() -> int:
         "",
         "- **Parse was the worst symptom, not query.** `order=len(doc.children(...))` sat"
         " inside the parse loop, so a large file could not be *loaded*, let alone queried.",
-        "- **Per-op edit cost is still O(N+E)** (`op-set-property` / `op-create-node` above):"
-        " every op runs a full-document `check_invariants()`. That is unchanged from before"
-        " this work and is a known, filed follow-up — narrowing it to the touched ids measured"
-        " as no better once the cycle check became O(N) amortized, and it would have changed"
-        " *when* a violation is detected. See `plans/01-scale-remediation.md` §10.",
+        "- **A point edit is now effectively free** (`op-set-property` above, flat across every"
+        " size): op-time validation is scoped to the ids the op touched (D-065), so a 50-token"
+        " edit no longer re-checks the whole document. It was ~82ms at 125k nodes before that"
+        " change. **Structural ops are still O(N)** (`op-create-node`): they invalidate the"
+        " derived index, and the next read rebuilds it. Incremental index maintenance is the"
+        " open follow-up — see `plans/01-scale-remediation.md` §10 F1.",
         "- **The derived index is memory the file does not pay for.** It is rebuilt on demand"
         " and never serialized (P17), so it costs RAM, not bytes on disk.",
         "- `sarib import` is the on-ramp a new user hits first, which is why it is measured"
@@ -350,7 +368,9 @@ def main() -> int:
     out = ROOT / "bench" / "scale-report.md"
     out.write_text("\n".join(lines), encoding="utf-8")
     print(f"\nwrote {out.relative_to(ROOT)}")
-    return 0
+    # Non-zero on a contaminated run so it cannot be committed unnoticed. An earlier
+    # attempt to wire this up silently failed to apply, and a contaminated report shipped.
+    return 2 if dirty else 0
 
 
 if __name__ == "__main__":

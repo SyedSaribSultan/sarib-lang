@@ -34,6 +34,10 @@ jobs:
         run: python impl/tests/test_deep_nesting.py
       - name: Index coherence fuzz (a stale derived index corrupts query results)
         run: python impl/tests/test_index_fuzz.py
+      # A whole-document check per op meant one pre-existing violation blocked EVERY edit,
+      # including the repair. Op-time validation is now scoped to the touched ids (D-065).
+      - name: Op validation is local (a damaged file must still be editable)
+        run: python impl/tests/test_op_validation.py
       # The `mcp` SDK requires Python >=3.10, so the containment test can only run there.
       # The core stays 3.9-compatible and is covered by the corpus + CLI steps on every version.
       - name: MCP path containment (must hold under -O, where asserts vanish)

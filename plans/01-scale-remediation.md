@@ -1,7 +1,7 @@
 # Plan 01 — Scale remediation for the reference implementation
 
 **Status:** ✅ **COMPLETE** — WP0–WP8 landed 2026-07-28 · **Filed:** 2026-07-27
-**Result:** worst cost slope **2.02 → 1.15** (`bench/scale-report.md`; G9 enforces ≤1.3) · capacity **4,000 → ≥30,000** nodes · behaviour byte-identical
+**Result:** worst cost slope **~1.9–2.3 → ~1.0–1.2** (ranges, not single figures — the fit varies run to run; `bench/scale-report.md` carries the exact numbers for its own run); G9 enforces ≤1.3 · capacity **4,000 → ≥30,000** nodes · behaviour byte-identical
 **Left open:** three follow-ups in §10, and G4 headroom is down to 13 LOC
 **Trigger:** "How does query performance hold up at tens of thousands of nodes?" — measured, and it does not.
 **Scope:** `impl/` only. No spec change was needed — §7 resolved as not-applicable, and no new `D-###` was required.
@@ -40,10 +40,10 @@ Indexed prototype, same machine, for the headroom this plan is buying:
 - **Parse scaling.** The probe builds `Doc` objects programmatically, so it never exercised
   `parser.py`. Parsing is *also* quadratic (§3, P1) — a real 30k-node file may take minutes
   to merely load, which would make it the worst symptom, not query.
-  → **Confirmed.** Baseline parse slope **1.81**; it was the front door, exactly as suspected.
+  → **Confirmed.** Baseline parse slope **~1.8–1.9** across runs; it was the front door, exactly as suspected.
 - **Render/preview scaling.** Nested walks there are worse than quadratic (§3, P4); untimed.
-  → **Confirmed:** baseline `outline` slope **2.00**; the worst same-size factor of the whole
-  remediation is `walk` at **470×**, with `outline` at **161×** (both at 1,211 nodes).
+  → **Confirmed:** baseline `outline` slope **~2.0–2.2**; the largest same-size factors are
+  `walk` and a point edit, both in the hundreds at ~1,200 nodes.
 - **Memory / RSS** at 30k–100k nodes (RM11's other half).
   → **Measured:** at 124,841 nodes the in-memory model is **92.4 MB** from a **7.2 MB** file (~13×),
   plus **10.7 MB** of derived index (~12% of the model). RM11's memory half is real but modest.
@@ -284,7 +284,7 @@ so the next session does not rediscover them.
 
 | # | Item | Why deferred | Evidence |
 |---|---|---|---|
-| **F1** | **Per-op cost is still O(N+E)** — every op runs a full-document `check_invariants()`. A 50-token point edit costs **82 ms** on a 125k-node doc. G1's *token* economy (0.50%) is untouched; its *latency* economy is not. | The plan (WP5) proposed narrowing validation to the touched ids. Built, measured, then **reverted**: it was no faster once the cycle check became O(N) amortized (`bench/scale-report.md` shows `op-set-property` at factor ~1× before/after — it was already linear), and it would have changed *when* a violation is detected, for no gain. Paying LOC and a semantic change for nothing failed the priority rule. | `bench/scale-report.md` §After, `op-set-property` / `op-create-node` rows |
+| **F1** | ~~Per-op cost is O(N+E)~~ → **RESOLVED for point edits (D-065), still open for structural ops.** A point edit is now **flat at ~0.001 ms** at every size (it was ~82 ms at 125k nodes) because op-time validation no longer re-checks the whole document. `create-node`/`move`/`add-edge`/`merge` remain O(N): they invalidate the derived index and the next read rebuilds it (~90 ms at 125k). Remaining work = incremental index maintenance. G1's *token* economy (0.50%) is untouched; its *latency* economy is not. | The plan (WP5) proposed narrowing validation to the touched ids. Built, measured, then **reverted**: it was no faster once the cycle check became O(N) amortized (`bench/scale-report.md` shows `op-set-property` at factor ~1× before/after — it was already linear), and it would have changed *when* a violation is detected, for no gain. Paying LOC and a semantic change for nothing failed the priority rule. | `bench/scale-report.md` §After, `op-set-property` / `op-create-node` rows |
 | **F2** | **A pre-existing invariant violation blocks every op.** Because validation is full-document, a doc that already carries an unrelated violation (e.g. a hand-authored duplicate slug) rejects *all* ops, including ones that would fix it. | Real bug, but it is a *validation-semantics* fix, not a scale fix. Smuggling it into a performance change would have made the golden net unable to prove the change was behaviour-preserving. Needs its own decision (it is the §7 question, still open). | reachable with two `{#same-slug}` headings + any op |
 | **F3** | **`select:none` is output-bounded, not work-bounded** (D3 above). Now O(N) instead of O(N²), so it is no longer urgent, but it still contradicts D-028's minimal-context intent on the work side, and `cursor` pagination depends on full materialisation. | Making it lazy changes `cursor` semantics. Own decision, own plan. | `query.py` `pool = [...]` then `[:maxn]` |
 

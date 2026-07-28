@@ -10,18 +10,18 @@ Times are milliseconds. `slope` is the least-squares exponent of log(time) vs lo
 
 | path | 1,211n | 12,450n | 37,370n | 124,841n | slope |
 |---|---|---|---|---|---|
-| parse | 11.0 | 110.5 | 378.1 | 1,408.2 | **1.05** |
-| canon | 9.5 | 98.9 | 291.7 | 1,052.9 | **1.01** |
-| fmt | 1.9 | 24.0 | 87.6 | 351.1 | **1.13** |
-| outline | 1.3 | 15.7 | 64.6 | 272.2 | **1.15** |
-| board | 0.5 | 5.0 | 19.3 | 66.1 | **1.06** |
-| mermaid | 0.2 | 2.0 | 7.8 | 30.6 | **1.14** |
-| query-filter | 0.5 | 3.9 | 13.6 | 45.6 | **0.99** |
-| query-graph | 2.2 | 26.7 | 101.7 | 443.2 | **1.14** |
-| walk | 0.2 | 1.8 | 5.5 | 21.6 | **1.05** |
-| validate | 0.5 | 5.4 | 22.0 | 76.8 | **1.08** |
-| op-set-property | 0.5 | 5.6 | 22.8 | 82.3 | **1.10** |
-| op-create-node | 0.7 | 6.3 | 21.9 | 91.3 | **1.06** |
+| parse | 6.9 | 77.3 | 233.7 | 1,077.0 | **1.08** |
+| canon | 5.7 | 68.8 | 192.0 | 796.0 | **1.06** |
+| fmt | 1.3 | 16.7 | 53.4 | 245.9 | **1.12** |
+| outline | 0.8 | 11.9 | 35.8 | 192.4 | **1.16** |
+| board | 0.3 | 3.8 | 13.8 | 54.8 | **1.11** |
+| mermaid | 0.1 | 1.3 | 5.0 | 25.3 | **1.18** |
+| query-filter | 0.3 | 3.0 | 8.2 | 37.1 | **1.03** |
+| query-graph | 1.4 | 19.9 | 62.2 | 367.6 | **1.19** |
+| walk | 0.092 | 1.0 | 3.6 | 17.2 | **1.12** |
+| validate | 0.3 | 3.8 | 13.4 | 65.1 | **1.13** |
+| op-set-property | 0.001 | 0.001 | 0.001 | 0.001 | **0.05** |
+| op-create-node | 0.3 | 3.4 | 15.3 | 90.6 | **1.23** |
 
 | | 1,211n | 12,450n | 37,370n | 124,841n |
 |---|---|---|---|---|
@@ -33,11 +33,11 @@ Times are milliseconds. `slope` is the least-squares exponent of log(time) vs lo
 
 | nodes | time | output |
 |---|---|---|
-| 1,000 | 25.0 ms | 0.1 MB |
-| 10,000 | 252.4 ms | 0.5 MB |
-| 30,000 | 888.8 ms | 1.7 MB |
-| 100,000 | 3,638.2 ms | 5.9 MB |
-| _slope_ | **1.08** | |
+| 1,000 | 35.7 ms | 0.1 MB |
+| 10,000 | 335.7 ms | 0.5 MB |
+| 30,000 | 1,143.1 ms | 1.7 MB |
+| 100,000 | 4,621.4 ms | 5.9 MB |
+| _slope_ | **1.05** | |
 
 ## Before — `0e8010f`, measured in a worktree on the same machine
 
@@ -45,42 +45,42 @@ Small sizes only: the pre-remediation code cannot reach the sizes above in reaso
 
 | path | 603n | 1,211n | 2,477n | 4,922n | slope |
 |---|---|---|---|---|---|
-| parse | 13.9 | 42.4 | 228.9 | 540.6 | **1.81** |
-| canon | 18.1 | 65.2 | 267.3 | 892.7 | **1.87** |
-| fmt | 13.7 | 53.2 | 280.8 | 821.9 | **1.99** |
-| outline | 52.4 | 213.5 | 1,006.6 | 3,316.6 | **2.00** |
-| board | 13.4 | 52.8 | 226.0 | 821.5 | **1.97** |
-| mermaid | 0.1 | 0.2 | 0.6 | 0.8 | **1.03** |
-| query-filter | 13.6 | 55.4 | 216.6 | 840.5 | **1.96** |
-| query-graph | 46.7 | 186.2 | 815.8 | 3,236.8 | **2.02** |
-| walk | 12.6 | 74.9 | 225.3 | 828.9 | **1.95** |
-| validate | 0.2 | 0.5 | 1.0 | 2.0 | **1.02** |
-| op-set-property | 0.2 | 0.5 | 0.9 | 1.8 | **0.99** |
-| op-create-node | 0.2 | 0.6 | 1.0 | 1.8 | **0.94** |
+| parse | 9.4 | 31.5 | 108.3 | 532.1 | **1.90** |
+| canon | 12.6 | 48.5 | 163.0 | 996.7 | **2.04** |
+| fmt | 9.4 | 43.3 | 156.7 | 867.7 | **2.12** |
+| outline | 35.7 | 147.4 | 624.1 | 3,505.3 | **2.17** |
+| board | 9.0 | 36.7 | 158.3 | 854.3 | **2.16** |
+| mermaid | 0.071 | 0.1 | 0.3 | 1.3 | **1.35** |
+| query-filter | 9.2 | 39.2 | 151.9 | 820.0 | **2.11** |
+| query-graph | 34.2 | 123.6 | 797.8 | 4,246.6 | **2.33** |
+| walk | 8.9 | 38.4 | 149.4 | 827.9 | **2.13** |
+| validate | 0.2 | 0.4 | 0.7 | 2.2 | **1.19** |
+| op-set-property | 0.2 | 0.3 | 1.1 | 2.4 | **1.27** |
+| op-create-node | 0.2 | 0.4 | 1.2 | 2.6 | **1.19** |
 
 ### Same size, both trees (~1,000 nodes)
 
 | path | before | after | factor |
 |---|---|---|---|
-| parse | 42.4 ms | 11.0 ms | **4x** |
-| canon | 65.2 ms | 9.5 ms | **7x** |
-| fmt | 53.2 ms | 1.9 ms | **28x** |
-| outline | 213.5 ms | 1.3 ms | **161x** |
-| board | 52.8 ms | 0.5 ms | **105x** |
-| mermaid | 0.2 ms | 0.2 ms | **1x** |
-| query-filter | 55.4 ms | 0.5 ms | **119x** |
-| query-graph | 186.2 ms | 2.2 ms | **83x** |
-| walk | 74.9 ms | 0.2 ms | **470x** |
-| validate | 0.5 ms | 0.5 ms | **1x** |
-| op-set-property | 0.5 ms | 0.5 ms | **1x** |
-| op-create-node | 0.6 ms | 0.7 ms | **1x** |
+| parse | 31.5 ms | 6.9 ms | **5x** |
+| canon | 48.5 ms | 5.7 ms | **9x** |
+| fmt | 43.3 ms | 1.3 ms | **33x** |
+| outline | 147.4 ms | 0.8 ms | **176x** |
+| board | 36.7 ms | 0.3 ms | **116x** |
+| mermaid | 0.1 ms | 0.1 ms | **1x** |
+| query-filter | 39.2 ms | 0.3 ms | **132x** |
+| query-graph | 123.6 ms | 1.4 ms | **91x** |
+| walk | 38.4 ms | 0.1 ms | **416x** |
+| validate | 0.4 ms | 0.3 ms | **1x** |
+| op-set-property | 0.3 ms | 0.0 ms | **528x** |
+| op-create-node | 0.4 ms | 0.3 ms | **1x** |
 
 (before at 1,211 nodes vs after at 1,211 nodes)
 
 ## Reading this
 
 - **Parse was the worst symptom, not query.** `order=len(doc.children(...))` sat inside the parse loop, so a large file could not be *loaded*, let alone queried.
-- **Per-op edit cost is still O(N+E)** (`op-set-property` / `op-create-node` above): every op runs a full-document `check_invariants()`. That is unchanged from before this work and is a known, filed follow-up — narrowing it to the touched ids measured as no better once the cycle check became O(N) amortized, and it would have changed *when* a violation is detected. See `plans/01-scale-remediation.md` §10.
+- **A point edit is now effectively free** (`op-set-property` above, flat across every size): op-time validation is scoped to the ids the op touched (D-065), so a 50-token edit no longer re-checks the whole document. It was ~82ms at 125k nodes before that change. **Structural ops are still O(N)** (`op-create-node`): they invalidate the derived index, and the next read rebuilds it. Incremental index maintenance is the open follow-up — see `plans/01-scale-remediation.md` §10 F1.
 - **The derived index is memory the file does not pay for.** It is rebuilt on demand and never serialized (P17), so it costs RAM, not bytes on disk.
 - `sarib import` is the on-ramp a new user hits first, which is why it is measured separately from the core paths.
 - **The same-size factors below are a floor, not a headline.** They compare at ~1,000 nodes because that is where both trees can be measured; the gap is the difference between a ~2.0 and a ~1.1 exponent, so it widens with every doubling.
