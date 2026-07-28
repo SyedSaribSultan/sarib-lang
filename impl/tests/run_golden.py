@@ -26,6 +26,7 @@ import hashlib
 import itertools
 import json
 import pathlib
+import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -51,13 +52,34 @@ def gen_kb() -> str:
     return g()
 
 
+def _tracked() -> set:
+    """Paths git actually tracks.
+
+    The golden set MUST be hermetic — identical in every clone. An earlier version
+    globbed the working directory, which blessed `examples/C-fitsmart-company.sarib`
+    (gitignored, local-only), so CI failed on a source it could never have had. Falls
+    back to plain globbing only if git is unavailable, and says so.
+    """
+    try:
+        r = subprocess.run(["git", "ls-files", "-z"], cwd=str(ROOT),
+                           capture_output=True, text=True, check=True)
+        return {(ROOT / p).resolve() for p in r.stdout.split("\0") if p}
+    except Exception as e:                                   # noqa: BLE001
+        print(f"WARNING: git unavailable ({e.__class__.__name__}); using every file on "
+              f"disk, so this run is not hermetic")
+        return set()
+
+
 def sources() -> list:
-    """(label, text) pairs — every real .sarib in the repo, plus the gate KB."""
+    """(label, text) pairs — every git-tracked .sarib in the repo, plus the gate KB."""
+    keep = _tracked()
     out = []
     for d, pat in ((ROOT / "impl" / "tests" / "corpus", "*.sarib"),
                    (ROOT / "examples", "*.sarib"),
                    (ROOT / "dogfood", "*.sarib")):
         for f in sorted(d.glob(pat)):
+            if keep and f.resolve() not in keep:
+                continue                                     # untracked / gitignored
             out.append((f"{d.name}/{f.name}", f.read_text(encoding="utf-8")))
     out.append(("synthetic/gate-kb", gen_kb()))
     return out
