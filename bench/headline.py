@@ -11,15 +11,51 @@ resolved to the pre-index code.
 
 Run:  python bench/headline.py                    # default 1k / 10k / 30k
       python bench/headline.py 1000 10000         # faster (the old code is slow on purpose)
+      python bench/headline.py --color | less -R    # force colour when piping
+      python bench/headline.py --no-color           # plain
 Writes bench/headline.txt alongside the printed panel.
 """
 from __future__ import annotations
 
 import json
+import os
 import pathlib
+import re
 import subprocess
 import sys
 import time
+
+# ---- colour ----------------------------------------------------------------
+# Colour goes to the TERMINAL only; bench/headline.txt is written plain, because a file
+# full of escape codes is unreadable everywhere that is not a terminal.
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+STYLE = {"rule": "38;5;39", "title": "1;97", "note": "38;5;245", "head": "1;37",
+         "old": "1;38;5;203", "new": "1;38;5;79", "fac": "1;38;5;220",
+         "gate": "38;5;213", "cmd": "1;38;5;51"}
+
+
+def _enable_ansi() -> bool:
+    """Windows consoles need virtual-terminal processing switched on explicitly."""
+    if os.name == "nt":
+        try:
+            import ctypes
+            h = ctypes.windll.kernel32.GetStdHandle(-11)
+            ctypes.windll.kernel32.SetConsoleMode(h, 7)   # VT_PROCESSING | existing flags
+        except Exception:                                 # noqa: BLE001
+            return False
+    return True
+
+
+USE_COLOUR = (("--color" in sys.argv                       # force on (piping, recording)
+               or ("--no-color" not in sys.argv
+                   and not os.environ.get("NO_COLOR")
+                   and sys.stdout.isatty()))
+              and _enable_ansi())
+
+
+def c(key: str, text: str) -> str:
+    """Wrap already-padded text, so colour codes never break column alignment."""
+    return f"\x1b[{STYLE[key]}m{text}\x1b[0m" if USE_COLOUR else text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 # GUARDED, and not decoratively: the baseline child loads this very file as a module. If
@@ -115,47 +151,54 @@ def main() -> int:
         print("  !! baseline resolved to an indexed tree — comparison invalid")
         return 1
 
-    L = []
-    L.append("=" * W)
-    L.append(" .sarib  ·  \"How does query performance hold up once the")
-    L.append("            node count reaches tens of thousands?\"")
-    L.append("=" * W)
-    L.append("")
-    L.append(" One bounded query over a whole document, from a cold start:")
-    L.append(" each timing includes building the index, which is what you")
-    L.append(" feel on the first question after opening a file. (The warm")
-    L.append(" per-query figures in bench/scale-report.md are lower.)")
-    L.append("")
-    L.append(" Same machine, byte-identical input. v0.1.4 measured in a")
-    L.append(f" git worktree at {BASE_SHA} — not a number from another day.")
-    L.append("")
-    L.append(f"   {'nodes':>9}   {'v0.1.4':>11}   {'v0.1.5':>10}   {'faster':>9}")
-    L.append(f"   {'-' * 9}   {'-' * 11}   {'-' * 10}   {'-' * 9}")
+    rule = c("rule", "━" * W)
+    thin = c("note", "─" * 9 + "   " + "─" * 11 + "   " + "─" * 10 + "   " + "─" * 9)
+    L = [rule,
+         " " + c("title", ".sarib") + c("note", "  ·  ")
+         + c("title", '"How does query performance hold up once the'),
+         "            " + c("title", 'node count reaches tens of thousands?"'),
+         rule, "",
+         c("note", " One bounded query over a whole document, from a cold start:"),
+         c("note", " each timing includes building the index — what you actually"),
+         c("note", " feel on the first question after opening a file."),
+         c("note", " Same machine, byte-identical input; v0.1.4 measured in a"),
+         c("note", f" git worktree at {BASE_SHA}, not a number from another day."),
+         "",
+         "   " + c("head", f"{'nodes':>9}") + "   " + c("old", f"{'v0.1.4':>11}")
+         + "   " + c("new", f"{'v0.1.5':>10}") + "   " + c("fac", f"{'faster':>9}"),
+         "   " + thin]
     for i, r in enumerate(now):
         o = old[i] if i < len(old) else None
-        fac = f"{o['query'] / r['query']:,.0f}x" if o and r["query"] > 0 else "-"
-        L.append(f"   {r['nodes']:>9,}   {human(o['query']) if o else 'n/a':>11}   "
-                 f"{human(r['query']):>10}   {fac:>9}")
-    L.append(f"   {big['nodes']:>9,}   {'too slow':>11}   {human(big['query']):>10}   "
-             f"{'-':>9}")
-    L.append("")
-    L.append(" Loading the file at all was the worse symptom:")
+        fac = f"{o['query'] / r['query']:,.0f}×" if o and r["query"] > 0 else "—"
+        L.append("   " + c("head", f"{r['nodes']:>9,}")
+                 + "   " + c("old", f"{human(o['query']) if o else 'n/a':>11}")
+                 + "   " + c("new", f"{human(r['query']):>10}")
+                 + "   " + c("fac", f"{fac:>9}"))
+    L.append("   " + c("head", f"{big['nodes']:>9,}")
+             + "   " + c("old", f"{'too slow':>11}")
+             + "   " + c("new", f"{human(big['query']):>10}")
+             + "   " + c("fac", f"{'—':>9}"))
+    L += ["", c("note", " Loading the file at all was the worse symptom:")]
     if old:
-        L.append(f"   parse {old[-1]['nodes']:,} nodes   v0.1.4 {human(old[-1]['parse'])}"
-                 f"   ->   v0.1.5 {human(now[-1]['parse'])}")
-    L.append("")
-    L.append(" NEW GATE G9 — the build now fails if cost grows faster than")
-    L.append(" n^1.3, or if the pipeline cannot handle 30,000 nodes.")
-    L.append(" Every gate before it passed while this was quadratic, because")
-    L.append(" the largest document any of them measured was 301 nodes.")
-    L.append("")
-    L.append(" Reproduce:  python bench/headline.py")
-    L.append("=" * W)
+        # Keep the version labels: colour distinguishes them on screen, but
+        # bench/headline.txt is plain and would otherwise be ambiguous.
+        L.append("   " + c("head", f"parse {old[-1]['nodes']:,} nodes") + "   "
+                 + c("old", f"v0.1.4 {human(old[-1]['parse'])}") + c("note", "  →  ")
+                 + c("new", f"v0.1.5 {human(now[-1]['parse'])}"))
+    L += ["",
+          " " + c("gate", "NEW GATE G9") + c("note", " — the build now fails if cost grows"),
+          c("note", " faster than n^1.3, or the pipeline cannot handle 30,000 nodes."),
+          c("note", " Every gate before it passed while this was quadratic, because"),
+          c("note", " the largest document any of them measured was 301 nodes."),
+          "",
+          c("note", " Reproduce:  ") + c("cmd", "python bench/headline.py"),
+          rule]
 
     panel = "\n".join(L)
     print()
     print(panel)
-    (ROOT / "bench" / "headline.txt").write_text(panel + "\n", encoding="utf-8")
+    (ROOT / "bench" / "headline.txt").write_text(ANSI_RE.sub("", panel) + "\n",
+                                                encoding="utf-8")
     print(f"\nwrote bench/headline.txt")
     return 0
 
