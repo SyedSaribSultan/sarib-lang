@@ -47,8 +47,10 @@ def apply(doc: Doc, op: dict) -> Doc:
                  order=a.get("order", len(doc.children(parent))),
                  provenance=op.get("provenance"))
         doc.nodes[nid] = n
+        doc.touch()
     elif kind == "retract-node":
         doc.nodes[t].status = "retracted"                               # P12: never destroy
+        doc.touch()
     elif kind == "set-content":
         doc.nodes[t].content = a["content"]
     elif kind == "set-property":
@@ -67,8 +69,10 @@ def apply(doc: Doc, op: dict) -> Doc:
         doc.edges[eid] = Edge(id=eid, type=a["type"], source=a["source"],
                               target=a["target"], properties=dict(a.get("props", {})),
                               provenance=op.get("provenance"))
+        doc.touch()
     elif kind == "retract-edge":
-        doc.edges[t].status = "retracted"
+        doc.edges[t].status = "retracted"       # no touch: adjacency indexes every edge and
+                                                # the reader filters on status, as it always did
     elif kind == "move":
         if a["parent"] not in doc.nodes:
             raise OpRejected(f"move: parent {a['parent']} missing")
@@ -78,7 +82,10 @@ def apply(doc: Doc, op: dict) -> Doc:
                 raise OpRejected("move: would create containment cycle")
             p = doc.nodes[p].parent
         doc.nodes[t].parent = a["parent"]
+        doc.touch()          # the order default counts the moved node itself, so the index
+                             # must already see the reparenting (as the old live scan did)
         doc.nodes[t].order = a.get("order", len(doc.children(a["parent"])))
+        doc.touch()
     elif kind == "merge":                                                # composite (D-035)
         loser, winner = t, a["into"]
         doc.nodes[loser].status = "retracted"
@@ -87,6 +94,7 @@ def apply(doc: Doc, op: dict) -> Doc:
         for e in doc.edges.values():
             if e.target == loser and e.type != "merged-into":
                 e.target = winner
+        doc.touch()
     elif kind == "tag":
         return apply(doc, {**op, "kind": "add-edge",
                            "args": {"type": "tag", "source": t, "target": a["concept"]}})
@@ -96,6 +104,10 @@ def apply(doc: Doc, op: dict) -> Doc:
     obj = doc.nodes.get(t) or doc.edges.get(t) if t else None
     if obj is not None:
         obj.version += 1
+    # Still a FULL check per op: measured, narrowing it to the touched ids bought nothing
+    # once the cycle check became O(N) amortized, and it would have changed *when* a
+    # violation is detected. Per-op cost is O(N+E); see bench/scale-report.md §4 and the
+    # two deferred follow-ups in plans/01-scale-remediation.md §10.
     diags = doc.check_invariants()
     if diags:
         raise OpRejected(f"op would break invariants: {diags}")          # RM14: closed op set

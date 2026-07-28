@@ -60,11 +60,14 @@ def query(doc: Doc, spec: dict) -> dict:
                     for c in doc.children(nid):
                         nxt.append(c.id)
                 if select != "contains":
-                    for eid in sorted(doc.edges):        # tie-break cascade (D-029)
+                    etypes = select if isinstance(select, list) else [select]
+                    # Only edges incident to nid, still in sorted-edge-id order so the
+                    # D-029 tie-break cascade is unchanged. This used to re-sort the whole
+                    # edge table once per visited node (O(V·E log E)).
+                    for eid in sorted(set(doc.out_edges(nid)) | set(doc.in_edges(nid))):
                         e = doc.edges[eid]
                         if e.status != "active" or e.target.startswith("?unresolved:"):
                             continue
-                        etypes = select if isinstance(select, list) else [select]
                         if select != "any" and e.type not in etypes:
                             continue
                         esrc = anchor_owner(doc, e.source)

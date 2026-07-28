@@ -14,7 +14,7 @@ and no path configuration. `tools/preview.py` is a shim kept for the old path.
 import argparse, html, json, pathlib, re, sys, webbrowser
 
 from . import parse, canon, fmt
-from .render import mermaid, _depth
+from .render import mermaid, _stats
 
 
 def esc(s):
@@ -43,9 +43,10 @@ def badges(n):
 
 def document_html(doc):
     out = []
+    depths = _stats(doc)[0]
     for n in doc.walk(None):
         if n.kind_hint == "heading":
-            lvl = min(int(n.properties.get("_level", _depth(doc, n) + 1)), 6)
+            lvl = min(int(n.properties.get("_level", depths[n.id] + 1)), 6)
             out.append(f"<h{lvl}>{inline(n.title)}{badges(n)}</h{lvl}>")
             chips = [f'<span class="chip"><b>{esc(k)}</b> {inline(v)}</span>'
                      for k, v in n.properties.items() if not k.startswith("_")]
@@ -58,20 +59,21 @@ def document_html(doc):
     return "\n".join(out)
 
 
-def outline_html(doc, parent=None):
+def outline_html(doc, parent=None, stats=None):
+    """Nested <details> outline. `stats` is computed once at the top call — this used
+    to run a full `walk(n.id)` per node inside a per-level recursion.
+    Recursion depth here is containment depth, which the surface grammar caps at
+    ~7 (headings are `#{1,6}`); programmatically-deep docs use the core views."""
+    size, tasks, done = stats if stats else _stats(doc)[1:]
     out = []
     for n in doc.children(parent):
         if n.kind_hint == "prose":
             continue
-        sub = list(doc.walk(n.id))
-        tasks = [m for m in sub if m.type and m.type.endswith("task")]
-        cue = ""
-        if tasks:
-            done = sum(1 for t in tasks if t.properties.get("status") == "done")
-            cue = f' <span class="cookie">{done}/{len(tasks)}</span>'
-        size = f' <span class="dim">({len(sub)})</span>' if sub else ""
-        label = f"{inline(n.title)}{badges(n)}{cue}{size}"
-        kids = outline_html(doc, n.id)
+        cue = (f' <span class="cookie">{done[n.id]}/{tasks[n.id]}</span>'
+               if tasks[n.id] else "")
+        sz = f' <span class="dim">({size[n.id]})</span>' if size[n.id] else ""
+        label = f"{inline(n.title)}{badges(n)}{cue}{sz}"
+        kids = outline_html(doc, n.id, (size, tasks, done))
         if kids:
             out.append(f"<details open><summary>{label}</summary>{kids}</details>")
         else:

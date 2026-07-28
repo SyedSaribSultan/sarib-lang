@@ -6,6 +6,26 @@ from __future__ import annotations
 from .model import Doc, anchor_owner
 
 
+def _stats(doc: Doc):
+    """(depth, size, tasks, done) per node id in two linear passes. `size/tasks/done`
+    are strictly-below counts. This replaces a `walk(n.id)` inside a `walk(None)` —
+    that nesting was super-quadratic. Returned as one tuple rather than two helpers
+    to stay inside the G4 LOC budget; callers needing only depth ignore the rest."""
+    order = list(doc.walk(None))
+    depth, size = {}, {n.id: 0 for n in order}
+    tasks, done = dict(size), dict(size)
+    for n in order:                               # parents precede children here
+        depth[n.id] = depth.get(n.parent, -1) + 1
+    for n in reversed(order):                     # children precede parents here
+        if n.parent in size:
+            task = bool(n.type and n.type.endswith("task"))
+            size[n.parent] += size[n.id] + 1
+            tasks[n.parent] += tasks[n.id] + (1 if task else 0)
+            done[n.parent] += done[n.id] + (
+                1 if task and n.properties.get("status") == "done" else 0)
+    return depth, size, tasks, done
+
+
 def fmt(doc: Doc) -> str:
     """Model -> Candidate-A surface. The document projection; idempotent (D-051)."""
     out = []
@@ -14,9 +34,10 @@ def fmt(doc: Doc) -> str:
         for k, v in doc.meta.items():
             out.append(f"{k}: {v}")
         out.append("---\n")
+    depths = _stats(doc)[0]
     for n in doc.walk(None):
         if n.kind_hint == "heading":
-            level = int(n.properties.get("_level", _depth(doc, n) + 1))
+            level = int(n.properties.get("_level", depths[n.id] + 1))
             marks = ""
             attrs = []
             if n.type:
@@ -42,29 +63,17 @@ def fmt(doc: Doc) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def _depth(doc: Doc, n) -> int:
-    d, p = 0, n.parent
-    while p is not None:
-        d, p = d + 1, doc.nodes[p].parent
-    return d
-
-
 def outline(doc: Doc) -> str:
     """Outline view with spatial cues: depth indent, [k/n] task cookies, subtree size (D-047)."""
     out = []
+    depths, size, tasks, done = _stats(doc)
     for n in doc.walk(None):
         if n.kind_hint == "prose":
             continue
-        d = _depth(doc, n)
-        sub = list(doc.walk(n.id))
-        tasks = [m for m in sub if m.type and m.type.endswith("task")]
-        cue = ""
-        if tasks:
-            done = sum(1 for t in tasks if t.properties.get("status") == "done")
-            cue = f" [{done}/{len(tasks)}]"
-        size = f" ({len(sub)})" if sub else ""
+        cue = f" [{done[n.id]}/{tasks[n.id]}]" if tasks[n.id] else ""
+        sz = f" ({size[n.id]})" if size[n.id] else ""
         typ = f" ·{n.type}" if n.type else ""
-        out.append(f"{'  ' * d}- {n.title}{typ}{cue}{size}")
+        out.append(f"{'  ' * depths[n.id]}- {n.title}{typ}{cue}{sz}")
     return "\n".join(out) + "\n"
 
 

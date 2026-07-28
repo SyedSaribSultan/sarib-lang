@@ -71,9 +71,17 @@ def parse(src: str) -> Doc:
     current = None      # node fields attach to (last heading/item)
     para: list = []
     pending_edges = []  # (source_id, rel, target_name)
+    sib: dict = {}      # container id -> next sibling order
 
     def container():
         return stack[-1][1] if stack else None
+
+    def next_order(c):
+        """Sibling order for the next child of `c`. Equivalent to the old
+        len(doc.children(c)) — every node parsed so far is active — but O(1),
+        which is what makes parse linear instead of quadratic."""
+        sib[c] = sib.get(c, 0) + 1
+        return sib[c] - 1
 
     def scan_inline(source_id: str, text: str):
         for m in TYPED_REF_RE.finditer(text):
@@ -91,7 +99,7 @@ def parse(src: str) -> Doc:
         if not text or text.startswith("<!--"):
             return
         n = Node(id=make_id(None), kind_hint="prose", content=text,
-                 parent=container(), order=len(doc.children(container())))
+                 parent=container(), order=next_order(container()))
         doc.nodes[n.id] = n
         scan_inline(n.id, text)
 
@@ -117,7 +125,7 @@ def parse(src: str) -> Doc:
                 stack.pop()
             n = Node(id=make_id(nid), kind_hint="heading", title=text, type=ntype,
                      slug=slug, properties=props, parent=container(),
-                     order=len(doc.children(container())))
+                     order=next_order(container()))
             n.properties["_level"] = level
             doc.nodes[n.id] = n
             scan_inline(n.id, text)
@@ -132,7 +140,7 @@ def parse(src: str) -> Doc:
             text, nid, slug, ntype, props = _strip_marks(m.group(2))
             n = Node(id=make_id(nid), kind_hint="item", title=text, type=ntype,
                      slug=slug, properties=props, parent=container(),
-                     order=len(doc.children(container())))
+                     order=next_order(container()))
             doc.nodes[n.id] = n
             scan_inline(n.id, text)
             current = n
@@ -198,5 +206,6 @@ def parse(src: str) -> Doc:
             tid = f"?unresolved:{name}"
         doc.edges[f"e{ec}"] = Edge(id=f"e{ec}", type=rel, source=src_id, target=tid)
 
+    doc.touch()          # edges were added after the slug lookups built the index
     doc.diagnostics.extend(doc.check_invariants())
     return doc

@@ -94,6 +94,7 @@ def _assign_slugs(doc):
         if n.title:
             n.slug = _dedup(n.slug or _slug_base(n.title), used)
             slug_of[n.id] = n.slug
+    doc.touch()          # slugs changed, so the derived slug index is stale
     return slug_of
 
 
