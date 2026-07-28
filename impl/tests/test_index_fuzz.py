@@ -9,8 +9,11 @@ so review cannot be the control. This is: fuzz random op sequences, and after ev
 accepted op assert that the CACHED index equals a from-scratch rebuild, and that
 canon/walk are identical either way.
 
-This test caught nothing on the final code; it caught the real bug during the work
-(ops.py mutating without touch() left create-node invisible to canon).
+It caught the real bug during the work: ops.py mutated without touch(), which left
+create-node invisible to canon. Every run begins with a NEGATIVE CONTROL that disables
+Doc.touch() and requires the net to notice -- so "it passed" can never mean "it cannot
+fail". The default run applies ~11.8k ops, which is the >=10k acceptance criterion in
+plans/01-scale-remediation.md WP5.
 
 Run: python impl/tests/test_index_fuzz.py [--ops N] [--seeds N] [--verbose]
 """
@@ -133,13 +136,17 @@ def run_seed(seed: int, n_ops: int, verbose: bool):
         cached_walk = [n.id for n in doc.walk(None)]
         cached_fmt = fmt(doc)
         cached_outline = outline(doc)
-        # ...must equal a from-scratch rebuild
-        doc.touch()
+        # ...must equal a from-scratch rebuild. Invalidate by clearing _idx DIRECTLY, not
+        # via doc.touch(): touch() is part of what is under test, and routing the test's own
+        # rebuild through it made the negative control vacuous — with touch() disabled the
+        # comparison was the stale index against itself.
+        doc._idx = None
         fresh_idx = snapshot(doc)
         if cached_idx != fresh_idx:
             where = [k for k in fresh_idx if cached_idx[k] != fresh_idx[k]]
             return (f"seed {seed} step {step}: STALE INDEX after {op['kind']} "
                     f"-> diverged in {where}", applied, rejected, resets)
+        doc._idx = None
         for what, before, after in (("canon", cached_canon, canon(doc)),
                                     ("walk", cached_walk, [n.id for n in doc.walk(None)]),
                                     ("fmt", cached_fmt, fmt(doc)),
@@ -153,11 +160,34 @@ def run_seed(seed: int, n_ops: int, verbose: bool):
     return None, applied, rejected, resets
 
 
+def negative_control() -> bool:
+    """Prove this net can actually FAIL. Disable Doc.touch() so every writer leaves a
+    stale index, then require the fuzz to catch it. A coherence test that cannot fail is
+    worthless, and this one is the sole control for RM24 — so it self-verifies on every
+    run rather than relying on someone having checked it once by hand."""
+    from sarib.model import Doc
+    real = Doc.touch
+    Doc.touch = lambda self: None                     # noqa: ARG005
+    try:
+        err, _a, _r, _s = run_seed(0, 80, False)
+        return err is not None
+    finally:
+        Doc.touch = real
+
+
 def main() -> int:
-    n_ops = int(sys.argv[sys.argv.index("--ops") + 1]) if "--ops" in sys.argv else 250
+    # default must reach the >=10k applied ops that plans/01-scale-remediation.md WP5
+    # sets as the acceptance criterion; 8 seeds x 1500 lands ~11.8k.
+    n_ops = int(sys.argv[sys.argv.index("--ops") + 1]) if "--ops" in sys.argv else 1500
     seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else 8
     verbose = "--verbose" in sys.argv
     total_applied = total_rejected = 0
+    print("negative control: disable Doc.touch(), the fuzz MUST report incoherence")
+    if not negative_control():
+        print("  FAIL — the net did not detect a deliberately broken index.")
+        print("\nVACUOUS TEST — it would pass on broken code. Fix the net, not the code.")
+        return 1
+    print("  ok   incoherence detected, so this net can fail\n")
     print(f"index-coherence fuzz: {seeds} seeds x {n_ops} ops")
     for seed in range(seeds):
         err, applied, rejected, resets = run_seed(seed, n_ops, verbose)

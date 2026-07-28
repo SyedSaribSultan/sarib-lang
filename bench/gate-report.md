@@ -1,6 +1,6 @@
 # Freeze-gate run — programmatic gates
 
-Date: 2026-07-28 · impl v0.1.4 · tokens = o200k (offline gpt-tokenizer)
+Date: 2026-07-28 · impl v0.1.5 · tokens = o200k (offline gpt-tokenizer)
 
 ## G1 · Edit economy (target: op ≤1% of regeneration)
 - KB size: 10042 tokens (301 nodes)
@@ -24,18 +24,20 @@ Date: 2026-07-28 · impl v0.1.4 · tokens = o200k (offline gpt-tokenizer)
 
 ## G9 · Scale (target: cost slope ≤1.3 · capacity ≥30,000 nodes within 15s/pass)
 
-| path | 603n | 1,211n | 2,477n | 4,922n | slope |
-|---|---|---|---|---|---|
-| parse | 13.0 ms | 23.5 ms | 57.5 ms | 105.3 ms | **1.02** |
-| canon | 12.8 ms | 28.8 ms | 41.6 ms | 73.5 ms | **0.80** |
-| walk | 0.1 ms | 0.4 ms | 0.5 ms | 0.9 ms | **0.82** |
-| query-filter | 0.3 ms | 1.3 ms | 1.2 ms | 2.1 ms | **0.78** |
-| query-graph | 1.4 ms | 6.1 ms | 8.7 ms | 18.2 ms | **1.14** |
-| render | 0.9 ms | 2.7 ms | 4.2 ms | 11.1 ms | **1.14** |
+Exponent fitted over **5 sizes, 1,211–62,221 nodes** (ladder escalates to 50,000 and stops at the first size over 10s, so a regressed implementation is still judged quickly).
 
-- Worst slope: **render = 1.14** (≤1.3 required) → PASS
+| path | 1,211n | 4,922n | 12,450n | 31,092n | 62,221n | slope |
+|---|---|---|---|---|---|---|
+| parse | 19.0 ms | 63.7 ms | 164.3 ms | 377.3 ms | 848.7 ms | **0.96** |
+| canon | 15.4 ms | 50.2 ms | 121.6 ms | 327.5 ms | 887.7 ms | **1.01** |
+| walk | 0.2 ms | 1.0 ms | 1.8 ms | 5.6 ms | 15.0 ms | **1.08** |
+| query-filter | 0.6 ms | 2.1 ms | 5.0 ms | 12.9 ms | 28.2 ms | **0.99** |
+| query-graph | 2.8 ms | 26.2 ms | 34.4 ms | 122.7 ms | 356.6 ms | **1.16** |
+| render | 1.6 ms | 9.0 ms | 20.6 ms | 76.9 ms | 268.5 ms | **1.27** |
+
+- Worst slope: **render = 1.27** (≤1.3 required) → PASS
 - Capacity: **30,000 nodes** (≥30,000 required) → PASS
-  - ladder: 500n=0.03s · 1,000n=0.06s · 2,000n=0.12s · 4,000n=0.29s · 8,000n=0.53s · 16,000n=0.90s · 30,000n=2.28s
+  - ladder: 500n=0.03s · 1,000n=0.06s · 2,000n=0.13s · 4,000n=0.28s · 8,000n=0.68s · 16,000n=0.99s · 30,000n=1.20s
 
 - **PASS**
 

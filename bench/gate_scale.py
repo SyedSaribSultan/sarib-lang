@@ -9,6 +9,9 @@ It asserts *shape*, not wall-clock, because CI runner speed varies by ~5x:
   1. EXPONENT — fit the log-log slope of cost vs node count for each hot path.
      Linear-ish work has slope ~1.0; a quadratic primitive shows ~2.0.
      Require slope <= 1.3 for parse, canon, walk, both query forms, and render.
+     The size ladder ESCALATES to 50,000 nodes and stops at the first size that
+     exceeds a per-size budget, so the exponent is fitted at real scale on healthy
+     code without hanging on regressed code.
 
   2. CAPACITY — the largest node count whose full pipeline (parse -> canon ->
      query -> render) completes inside a per-size time budget. Self-limiting:
@@ -34,7 +37,16 @@ from sarib import canon, parse                    # noqa: E402
 from sarib.query import query                     # noqa: E402
 from sarib.render import outline                  # noqa: E402
 
-EXPONENT_SIZES = [500, 1000, 2000, 4000]
+# The exponent must be fitted at REAL sizes, not toy ones — a gate that only measures
+# small inputs is the very failure mode this gate exists to prevent (D-062). But the fit
+# cannot use fixed large sizes either: on a regressed (quadratic) implementation a 50k-node
+# fit would take hours. So the ladder ESCALATES and stops at the first size that blows the
+# per-size budget, then fits over whatever completed (>=MIN_FIT_SIZES). Linear code reaches
+# the top and is judged at 50k; quadratic code stops early, is judged small, and fails on
+# slope and capacity anyway.
+EXPONENT_LADDER = [1000, 4000, 10000, 25000, 50000]
+MIN_FIT_SIZES = 3
+FIT_BUDGET_S = 10.0
 CAPACITY_LADDER = [500, 1000, 2000, 4000, 8000, 16000, 30000]
 CAPACITY_TARGET = 30000
 BUDGET_S = 15.0
@@ -144,12 +156,19 @@ def capacity(budget_s: float = BUDGET_S, verbose: bool = False):
 
 def run(quick: bool = False, verbose: bool = False) -> dict:
     slopes, rows = {}, []
-    for n in EXPONENT_SIZES:
+    for n in EXPONENT_LADDER:
+        t0 = time.perf_counter()
         row = measure(n)
+        elapsed = time.perf_counter() - t0
         rows.append(row)
         if verbose:
             print(f"    {row['nodes']:>6} nodes / {row['edges']:>5} edges: "
                   + "  ".join(f"{m}={row[m] * 1000:.1f}ms" for m in METRICS))
+        if elapsed > FIT_BUDGET_S and len(rows) >= MIN_FIT_SIZES:
+            if verbose:
+                print(f"    (size {n} took {elapsed:.1f}s > {FIT_BUDGET_S:.0f}s budget — "
+                      f"fitting over the {len(rows)} sizes measured)")
+            break
     sizes = [r["nodes"] for r in rows]
     for m in METRICS:
         slopes[m] = _fit_slope(sizes, [r[m] for r in rows])
@@ -162,7 +181,10 @@ def run(quick: bool = False, verbose: bool = False) -> dict:
     passed = exponent_ok and capacity_ok
 
     lines = [f"## G9 · Scale (target: cost slope ≤{MAX_SLOPE} · capacity ≥"
-             f"{CAPACITY_TARGET:,} nodes within {BUDGET_S:.0f}s/pass)", ""]
+             f"{CAPACITY_TARGET:,} nodes within {BUDGET_S:.0f}s/pass)", "",
+             f"Exponent fitted over **{len(sizes)} sizes, {min(sizes):,}–{max(sizes):,} nodes** "
+             f"(ladder escalates to {EXPONENT_LADDER[-1]:,} and stops at the first size over "
+             f"{FIT_BUDGET_S:.0f}s, so a regressed implementation is still judged quickly).", ""]
     lines.append("| path | " + " | ".join(f"{s:,}n" for s in sizes) + " | slope |")
     lines.append("|---" * (len(sizes) + 2) + "|")
     for m in METRICS:

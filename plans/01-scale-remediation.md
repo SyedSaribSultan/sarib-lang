@@ -1,7 +1,7 @@
 # Plan 01 — Scale remediation for the reference implementation
 
 **Status:** ✅ **COMPLETE** — WP0–WP8 landed 2026-07-28 · **Filed:** 2026-07-27
-**Result:** worst cost slope **~2.0–2.4 → ≤1.2** (G9 threshold 1.3; the fit moves run-to-run) · capacity **4,000 → ≥30,000** nodes (the ladder's top rung) · behaviour byte-identical
+**Result:** worst cost slope **2.02 → 1.15** (`bench/scale-report.md`; G9 enforces ≤1.3) · capacity **4,000 → ≥30,000** nodes · behaviour byte-identical
 **Left open:** three follow-ups in §10, and G4 headroom is down to 13 LOC
 **Trigger:** "How does query performance hold up at tens of thousands of nodes?" — measured, and it does not.
 **Scope:** `impl/` only. No spec change was needed — §7 resolved as not-applicable, and no new `D-###` was required.
@@ -13,7 +13,7 @@
 
 The reference implementation is **quadratic in node count on its core primitive**, and that
 primitive sits under parsing, canonicalization, querying, rendering, and every edit op.
-It is comfortable at the 301-node dogfood KB and unusable by 10k.
+It is comfortable at the 301-node synthetic gate KB (`gen_kb()`; the real dogfood files are 123 and 149 nodes) and unusable by 10k.
 
 Measured on CPython 3.13, synthetic balanced tree (branching 8, one cross-ref edge per node):
 
@@ -40,12 +40,12 @@ Indexed prototype, same machine, for the headroom this plan is buying:
 - **Parse scaling.** The probe builds `Doc` objects programmatically, so it never exercised
   `parser.py`. Parsing is *also* quadratic (§3, P1) — a real 30k-node file may take minutes
   to merely load, which would make it the worst symptom, not query.
-  → **Confirmed.** Baseline parse slope **1.87**; it was the front door, exactly as suspected.
+  → **Confirmed.** Baseline parse slope **1.81**; it was the front door, exactly as suspected.
 - **Render/preview scaling.** Nested walks there are worse than quadratic (§3, P4); untimed.
-  → **Confirmed:** baseline `outline` slope **1.95**, and the worst same-size factor of the
-  whole remediation (281× at 1,211 nodes).
+  → **Confirmed:** baseline `outline` slope **2.00**; the worst same-size factor of the whole
+  remediation is `walk` at **470×**, with `outline` at **161×** (both at 1,211 nodes).
 - **Memory / RSS** at 30k–100k nodes (RM11's other half).
-  → **Measured:** at 125k nodes the in-memory model is **92 MB** from a **7.2 MB** file (~13×),
+  → **Measured:** at 124,841 nodes the in-memory model is **92.4 MB** from a **7.2 MB** file (~13×),
   plus **10.7 MB** of derived index (~12% of the model). RM11's memory half is real but modest.
 - Constants are single-run, no warmup, uniform synthetic topology. **The exponent is the
   finding; the constants are soft.** Do not quote the ms figures as benchmarks.
@@ -105,8 +105,18 @@ every WP. Each WP is independently committable.
   fit the exponent across ≥3 sizes and require **≤1.3** for parse, canon, full walk, filter
   query, graph walk, and render. Plus one absolute smoke ceiling generous enough not to flake.
 - Add fixed sizes 1k / 10k / 30k. Keep 100k out of CI (time), available via a flag.
+  → **Deviated, then corrected.** The gate first shipped fitting over 500–4,000 nodes, because the
+  *pre-fix* code could not reach 10k in reasonable time — but that left the anti-toy-scale gate
+  measuring itself at toy scale (caught in review). Replaced with an **escalating ladder**
+  (1k → 4k → 10k → 25k → 50k) that stops at the first size over a 10s budget and fits over
+  whatever completed (≥3 sizes). Healthy code is now judged at ~62k nodes; regressed code stops
+  early, is judged small, and fails on slope and capacity anyway. No separate 100k flag: the
+  ladder self-limits, and `bench/scale_probe.py` covers 125k.
 - **Acceptance:** G9 fails on today's `main` for the documented reasons. Commit it failing
   (or `xfail`-marked with the plan referenced) so the gate report stops implying scale is covered.
+  → **Met.** It failed with every gated path ~1.8–2.2. The re-runnable record of the pre-fix
+  state is the **Before** table in `bench/scale-report.md` (measured in a worktree at `0e8010f`),
+  not the transient gate output.
 
 ### WP1 · `Doc` gains derived indexes — the core primitive (C1, C3)
 - Lazily-built, cached on `Doc`: `parent → [Node]` (sorted by `(order, id)`), `slug → id`,
@@ -152,6 +162,14 @@ every WP. Each WP is independently committable.
   catches a forgotten `touch()`. Lives in `impl/tests/` → **outside the G4 LOC budget**.
 - **Acceptance:** G5 unchanged (4 concurrent ops × 24 permutations → 1 distinct state);
   fuzz run of ≥10k ops with zero index divergence.
+  → **Met by the default command** (`python impl/tests/test_index_fuzz.py` = 8 seeds × 1500 ops
+  → **11,831 applied**, zero divergence), which is also what CI runs. The default was originally
+  250 ops/seed (1,952 applied), so the criterion was cited before it was met — corrected in review.
+  The negative control is now **committed and runs first on every invocation**: it disables
+  `Doc.touch()` and requires the net to report incoherence, so a passing run can never mean
+  "cannot fail". Building it exposed a real flaw — the fuzz had used `doc.touch()` for its own
+  rebuild, so with `touch()` disabled it compared the stale index against itself. It now clears
+  `_idx` directly.
 
 ### WP6 · Consumers: `canon`, `render`, `preview`, `importer` (P3, P4, P7)
 - `canon.py`: single indexed walk.
@@ -240,9 +258,11 @@ python impl/tests/test_deep_nesting.py   # 5,000 levels, recursion limit untouch
 python impl/tests/test_index_fuzz.py     # cached index == rebuild, after every op
 ```
 
-The probe prefers in-repo `impl/` over the installed package. Note this machine currently runs
-the **released 0.1.4 build** from PyPI (session 16), so anything invoking `sarib` as a console
-script measures the wheel, not the tree — use the probe for the tree. `scale_probe.py --report`
+The probe prefers in-repo `impl/` over the installed package. Note this machine runs the
+**released build** from PyPI (session 16), so anything invoking `sarib` as a console script
+measures the wheel, not the tree — use the probe for the tree. The tree is now **0.1.5**
+precisely so the two stop sharing a version string: PyPI's `0.1.4` is the quadratic codebase,
+and a re-run against it would reproduce none of the G9 numbers (≈470× on `walk` alone). `scale_probe.py --report`
 measures the baseline commit in a throwaway git worktree and asserts via an `indexed` marker
 that it really resolved to the old code (an earlier version silently measured the new tree
 twice, because importing `gate_scale` puts the main tree's `impl/` on `sys.path`).
@@ -264,7 +284,7 @@ so the next session does not rediscover them.
 
 | # | Item | Why deferred | Evidence |
 |---|---|---|---|
-| **F1** | **Per-op cost is still O(N+E)** — every op runs a full-document `check_invariants()`. A 50-token point edit costs ~90 ms on a 125k-node doc. G1's *token* economy (0.50%) is untouched; its *latency* economy is not. | The plan (WP5) proposed narrowing validation to the touched ids. Built, measured, then **reverted**: it was no faster once the cycle check became O(N) amortized (`bench/scale-report.md` shows `op-set-property` at factor ~1× before/after — it was already linear), and it would have changed *when* a violation is detected, for no gain. Paying LOC and a semantic change for nothing failed the priority rule. | `bench/scale-report.md` §After, `op-set-property` / `op-create-node` rows |
+| **F1** | **Per-op cost is still O(N+E)** — every op runs a full-document `check_invariants()`. A 50-token point edit costs **82 ms** on a 125k-node doc. G1's *token* economy (0.50%) is untouched; its *latency* economy is not. | The plan (WP5) proposed narrowing validation to the touched ids. Built, measured, then **reverted**: it was no faster once the cycle check became O(N) amortized (`bench/scale-report.md` shows `op-set-property` at factor ~1× before/after — it was already linear), and it would have changed *when* a violation is detected, for no gain. Paying LOC and a semantic change for nothing failed the priority rule. | `bench/scale-report.md` §After, `op-set-property` / `op-create-node` rows |
 | **F2** | **A pre-existing invariant violation blocks every op.** Because validation is full-document, a doc that already carries an unrelated violation (e.g. a hand-authored duplicate slug) rejects *all* ops, including ones that would fix it. | Real bug, but it is a *validation-semantics* fix, not a scale fix. Smuggling it into a performance change would have made the golden net unable to prove the change was behaviour-preserving. Needs its own decision (it is the §7 question, still open). | reachable with two `{#same-slug}` headings + any op |
 | **F3** | **`select:none` is output-bounded, not work-bounded** (D3 above). Now O(N) instead of O(N²), so it is no longer urgent, but it still contradicts D-028's minimal-context intent on the work side, and `cursor` pagination depends on full materialisation. | Making it lazy changes `cursor` semantics. Own decision, own plan. | `query.py` `pool = [...]` then `[:maxn]` |
 
