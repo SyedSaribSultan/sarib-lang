@@ -527,3 +527,25 @@ Stage 3 ratifies D-001 … D-011 as binding principles (see `stages/03-design-pr
 **Choice:** **Candidate A (prose-native Markdown superset) is the normative surface.** Candidate B is preserved as the future *compact profile* for token-critical agent↔agent exchange (not author-facing). Reference implementation (Python), conformance corpus, and benchmarks build against A.
 **Reversal condition:** Freeze-gate benchmarks (G1–G8) reveal an A-specific failure that B avoids.
 **Evidence:** `bench/tokenizer-report.md`; Stage 10 §6; D-045; user ratification 2026-07-19.
+
+---
+
+## D-062 · G9 (scale) added to the freeze gate
+**Date:** 2026-07-28 · **Stage:** post-15 execution (scale remediation) · **Status:** Ratified
+
+**Context:** Every programmatic freeze gate (G1/G4/G5/G6/G7) passed while the reference implementation was quadratic in node count on its core primitive — parse, canon, walk, query and render all measured at ~N^2.0, unusable by 10k nodes. The gates could not see it because the largest artifact any of them measures is the 301-node dogfood KB, which sits in the flat part of the cost curve. v1.0 could have frozen on a reference implementation that fell over at real-note scale, and RM8's watch-list trigger ("latency unacceptable at 100k nodes") had no gate behind it.
+**Options:** (a) leave scale to judgement and re-measure ad hoc; (b) add an absolute wall-clock gate; (c) add a gate on the cost *exponent* plus a capacity ladder.
+**Choice:** (c) — **G9** (`bench/gate_scale.py`, wired into `bench/run_gates.py` and CI). It asserts the least-squares log-log slope of cost vs node count is **≤1.3** for parse, canon, walk, both query forms and render, and that the full pipeline handles **≥30,000 nodes** within 15s/pass. Shape, not wall-clock, because CI runner speed varies ~5×; the capacity probe is self-limiting (escalation stops at the first size over budget) so the gate cannot hang on a slow implementation. Programmatic gates are now G1,G4,G5,G6,G7,**G9**.
+**Reversal condition:** G9 proves flaky across CI runners (slope estimates unstable enough to fail a genuinely linear implementation), or a legitimate design change makes a super-linear path unavoidable and justified — in which case the threshold is re-argued in the open, not removed.
+**Evidence:** `bench/gate-report.md` (G9 section); `bench/scale-report.md`; `plans/01-scale-remediation.md` §5 D5; register RM8/RM11.
+
+---
+
+## D-063 · The reference implementation maintains derived in-memory indexes
+**Date:** 2026-07-28 · **Stage:** post-15 execution (scale remediation) · **Status:** Ratified
+
+**Context:** `Doc.children()` linear-scanned every node to find one parent's children and `walk()` called it once per node, so a full document walk was O(N²); `query.py` re-sorted the entire edge table once per visited node. D-044 already specifies a derived id→offset index for partial load and P17 already classes indexes as regenerable derived artifacts — the spec always presumed an index; the implementation never built one. This was an implementation defect, not a design flaw, and needed no spec change.
+**Options:** (a) keep the naive scans and accept the ceiling; (b) make the file format carry an index (rejected outright — it would make a derived artifact canonical, violating P17 and the losslessness/determinism story); (c) build the index in memory, derived and disposable.
+**Choice:** (c). `Doc` lazily builds and caches four indexes — `parent→[Node]` (sorted by `(order,id)`), `slug→id`, and crossref adjacency `out`/`in` keyed by the **anchor-resolved** endpoint (Stage 4 §5.3), built once in sorted-edge-id order so the D-029 tie-break cascade is bit-for-bit unchanged. They are **never serialized, never hashed, never part of canonical form.** Writers call `doc.touch()` to invalidate; because there is no single mutation chokepoint, the control is `impl/tests/test_index_fuzz.py`, not review. `walk()` also became iterative (recursion overflowed at ~1000 containment levels regardless of node count). Op-time validation deliberately stays **full-document**: narrowing it to the touched ids was built, measured as no faster, and reverted.
+**Reversal condition:** the index is observed to diverge from a from-scratch rebuild in a way the fuzz net does not catch, or index memory (~12% of the model) becomes the binding constraint before compute does — in which case move to incremental index maintenance rather than back to scanning.
+**Evidence:** `bench/scale-report.md` (same-machine worktree before/after; worst slope 2.39→1.08, capacity 4k→30k+); `impl/tests/run_golden.py` (155 query fingerprints, 11 op states, 9 rejection messages byte-identical); `impl/tests/test_index_fuzz.py` (11.8k ops, zero divergence, negative control verified); `plans/01-scale-remediation.md`; P17, D-029, D-044.

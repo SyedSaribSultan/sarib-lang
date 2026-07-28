@@ -57,6 +57,7 @@ Cut completeness and ceremony freely; never cut determinism, losslessness, safet
 ## Quality bar — state-of-the-art engineering practice
 
 - **Verify before "done."** Cross-check internal consistency and citations each stage; for high-stakes work, verify with a subagent. A stage isn't finished until its successor could critique it without finding a broken reference.
+- **No gate may be validated only at toy scale.** Every programmatic gate passed while the reference impl was quadratic, because the largest artifact any of them measured was 301 nodes (G9/D-062 exists because of this). When asserting a property, ask at what size it was checked. And when a refactor replaces something that *incidentally* supplies ordering or identity, pin the observable behaviour first (`impl/tests/run_golden.py`) — otherwise a correctness regression arrives disguised as a performance change.
 - **Determinism & losslessness are non-negotiable.** One canonical normal form; projections may hide fields but never silently drop them.
 - **Self-hosting consistency.** Schemas, queries, and (where sensible) operations are expressed in `.sarib` itself; keep the model self-describing.
 - **Traceability.** Every principle traces to evidence; every decision to a principle; every stage critiques the last. Preserve that chain.
@@ -79,5 +80,7 @@ Lead with the answer, then support it. Truth-density over volume; causal precisi
 | Operation vocabulary / serialization | `stages/08…09-*.md` |
 | Every decision + reversal condition | `decisions/decision-log.md` (D-001…) |
 | Every risk + status + early-warning | `risks/risk-register.md` (watch list in §1) |
+| Engineering plans (WPs + acceptance criteria) | `plans/` |
+| Measured gate + scale results | `bench/gate-report.md`, `bench/scale-report.md` |
 
 If this file and a stage document ever disagree, the stage + decision log win — then fix this file.

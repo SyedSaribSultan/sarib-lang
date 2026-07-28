@@ -1,8 +1,10 @@
 # Plan 01 — Scale remediation for the reference implementation
 
-**Status:** planned, not started · **Filed:** 2026-07-27 · **Owner:** next working session
+**Status:** ✅ **COMPLETE** — WP0–WP8 landed 2026-07-28 · **Filed:** 2026-07-27
+**Result:** worst cost slope **~2.0–2.4 → ≤1.2** (G9 threshold 1.3; the fit moves run-to-run) · capacity **4,000 → ≥30,000** nodes (the ladder's top rung) · behaviour byte-identical
+**Left open:** three follow-ups in §10, and G4 headroom is down to 13 LOC
 **Trigger:** "How does query performance hold up at tens of thousands of nodes?" — measured, and it does not.
-**Scope:** `impl/` only. No spec change expected (see §7 for the one open question).
+**Scope:** `impl/` only. No spec change was needed — §7 resolved as not-applicable, and no new `D-###` was required.
 **Evidence:** `bench/scale_probe.py` (committed with this plan; re-run to reproduce every number below).
 
 ---
@@ -34,17 +36,30 @@ Indexed prototype, same machine, for the headroom this plan is buying:
 | 100,000 | 252 ms | 35 ms | (too slow to time) |
 
 ### Not yet measured — do these first in WP7, do not assume
+*(All four are now measured → `bench/scale-report.md`. Verdicts recorded inline below.)*
 - **Parse scaling.** The probe builds `Doc` objects programmatically, so it never exercised
   `parser.py`. Parsing is *also* quadratic (§3, P1) — a real 30k-node file may take minutes
   to merely load, which would make it the worst symptom, not query.
+  → **Confirmed.** Baseline parse slope **1.87**; it was the front door, exactly as suspected.
 - **Render/preview scaling.** Nested walks there are worse than quadratic (§3, P4); untimed.
+  → **Confirmed:** baseline `outline` slope **1.95**, and the worst same-size factor of the
+  whole remediation (281× at 1,211 nodes).
 - **Memory / RSS** at 30k–100k nodes (RM11's other half).
+  → **Measured:** at 125k nodes the in-memory model is **92 MB** from a **7.2 MB** file (~13×),
+  plus **10.7 MB** of derived index (~12% of the model). RM11's memory half is real but modest.
 - Constants are single-run, no warmup, uniform synthetic topology. **The exponent is the
   finding; the constants are soft.** Do not quote the ms figures as benchmarks.
+  → Still true of this table; `bench/scale-report.md` uses best-of-3 and a same-machine
+  worktree baseline, so its *factors* are sound while its *absolute ms* remain machine-specific.
 
 ---
 
 ## 2. Root causes — two primitives, everything else is a consumer
+
+> **Line numbers in §2 and §3 describe the code as of `0e8010f`** (the last commit before the
+> remediation), which is what was diagnosed. They no longer point at the same lines on `main` —
+> the whole point is that those lines are gone. To read the diagnosed code:
+> `git show 0e8010f:impl/sarib/model.py`. The *file* references remain correct.
 
 | # | Primitive | Location | Cost |
 |---|---|---|---|
@@ -192,34 +207,45 @@ The user asked for the knock-on issues, not just the fix. These are the ones tha
 4. Indexes stay **derived, in-memory, disposable** — never serialized, hashed, or canonical.
 5. No positional addressing introduced (P13 / D-033 / D-036). An index is keyed by id; that is
    fine. An index keyed by line/offset **inside the model** is not.
-6. Zero observable behaviour change from WP1–WP4 and WP6 (pure performance). WP5's incremental
-   validation is the single intentional exception, and it needs a decision.
+6. Zero observable behaviour change across **every** WP (pure performance). ✅ Held: no
+   exception was needed, because WP5's validation narrowing was reverted (§10 F1). The golden
+   net proves it — 155 query fingerprints, 11 op states and 9 rejection messages unchanged.
 
-## 7. Open question for Sarib (decide before WP5)
+## 7. Open question — RESOLVED as "not applicable"
 
-Does narrowing post-op validation from full-document to local (§WP5, P6) require a `D-###`?
+*Was:* does narrowing post-op validation from full-document to local (§WP5, P6) require a `D-###`?
 
-- **Argument no:** it is an optimization; full validation still exists as `sarib validate` and
-  at load; the 10 invariants are unchanged.
-- **Argument yes:** it changes *when* a violation is detected. A malformed op that previously
-  failed immediately could now be caught only at save/validate time — observable, and it
-  touches the "forgiving but deterministic" Tier-1 story (D-049..D-051).
-- **Recommendation:** log it as a decision with the reversal condition *"if any invariant
-  violation is observed escaping op-time detection and reaching a persisted file, revert to
-  full validation per op."* Cheap to log, and it keeps the traceability chain intact.
+**Answer: no decision is needed, because the narrowing was not shipped.** It was built,
+measured, and reverted — it bought nothing once the cycle check became O(N) amortized
+(`op-set-property` is factor ~1× before/after in `bench/scale-report.md`, because it was
+already linear), while costing LOC the G4 budget did not have and changing *when* a violation
+is detected. Paying a semantic change for no measured gain fails the priority rule
+(integrity > writability > efficiency), so op-time validation stays full-document.
+
+The *underlying* issue it would have fixed is real and now filed separately as §10 F2, which
+does need its own decision when someone takes it on. **No decision was logged for the
+narrowing, because it was not shipped.** The two decisions this work *did* produce are
+**D-062** (G9 added to the freeze gate) and **D-063** (the reference impl maintains derived
+in-memory indexes; op-time validation stays full-document).
 
 ## 8. Reproduce
 
 ```
-python bench/scale_probe.py              # §1 tables (30k row takes ~2 min pre-fix)
-python bench/scale_probe.py 300 1000     # fast sanity run
-python impl/tests/run_corpus.py          # must stay 6/6
-python bench/run_gates.py                # G1/G4/G5/G6/G7 (+ G9 after WP0)
+python bench/run_gates.py                # G1/G4/G5/G6/G7/G9 -> bench/gate-report.md
+python bench/gate_scale.py               # G9 alone, with the capacity ladder
+python bench/scale_probe.py --report     # full table + before/after -> bench/scale-report.md
+python impl/tests/run_corpus.py          # 6/6 conformance
+python impl/tests/run_golden.py          # 155 query fingerprints + op path, byte-identical
+python impl/tests/test_deep_nesting.py   # 5,000 levels, recursion limit untouched
+python impl/tests/test_index_fuzz.py     # cached index == rebuild, after every op
 ```
 
 The probe prefers in-repo `impl/` over the installed package. Note this machine currently runs
 the **released 0.1.4 build** from PyPI (session 16), so anything invoking `sarib` as a console
-script measures the wheel, not the tree — use the probe for the tree.
+script measures the wheel, not the tree — use the probe for the tree. `scale_probe.py --report`
+measures the baseline commit in a throwaway git worktree and asserts via an `indexed` marker
+that it really resolved to the old code (an earlier version silently measured the new tree
+twice, because importing `gate_scale` puts the main tree's `impl/` on `sys.path`).
 
 ## 9. Suggested sequencing if credits are tight
 
@@ -227,3 +253,23 @@ WP0 → WP1 → WP3 → WP4 is the smallest set that turns the wall into a slope
 removes the worst factor. WP6's `render`/`preview` and WP7's measurement are the highest-value
 follow-ups. WP8 is small and must not be dropped — without it the next session re-discovers
 this from scratch.
+
+*(All nine WPs were completed in one session on 2026-07-28, so the sequencing above was
+not needed — recorded as written for the record.)*
+
+## 10. Deferred follow-ups (filed 2026-07-28, when WP0–WP8 completed)
+
+Two things were deliberately **not** done, and one plan assumption was wrong. Recorded here
+so the next session does not rediscover them.
+
+| # | Item | Why deferred | Evidence |
+|---|---|---|---|
+| **F1** | **Per-op cost is still O(N+E)** — every op runs a full-document `check_invariants()`. A 50-token point edit costs ~90 ms on a 125k-node doc. G1's *token* economy (0.50%) is untouched; its *latency* economy is not. | The plan (WP5) proposed narrowing validation to the touched ids. Built, measured, then **reverted**: it was no faster once the cycle check became O(N) amortized (`bench/scale-report.md` shows `op-set-property` at factor ~1× before/after — it was already linear), and it would have changed *when* a violation is detected, for no gain. Paying LOC and a semantic change for nothing failed the priority rule. | `bench/scale-report.md` §After, `op-set-property` / `op-create-node` rows |
+| **F2** | **A pre-existing invariant violation blocks every op.** Because validation is full-document, a doc that already carries an unrelated violation (e.g. a hand-authored duplicate slug) rejects *all* ops, including ones that would fix it. | Real bug, but it is a *validation-semantics* fix, not a scale fix. Smuggling it into a performance change would have made the golden net unable to prove the change was behaviour-preserving. Needs its own decision (it is the §7 question, still open). | reachable with two `{#same-slug}` headings + any op |
+| **F3** | **`select:none` is output-bounded, not work-bounded** (D3 above). Now O(N) instead of O(N²), so it is no longer urgent, but it still contradicts D-028's minimal-context intent on the work side, and `cursor` pagination depends on full materialisation. | Making it lazy changes `cursor` semantics. Own decision, own plan. | `query.py` `pool = [...]` then `[:maxn]` |
+
+**Corrected plan assumption:** §5 D4 estimated the fix at **+20 to +30 LOC**. Actual is **+54**
+(933 → 987 of 1000). The estimate was low because it counted the index but not the iterative
+walk, the one-pass `_stats()` helper, or the `touch()` calls. Headroom is now **13 LOC** — the
+next core addition of any size has to argue against G4 explicitly.
+
