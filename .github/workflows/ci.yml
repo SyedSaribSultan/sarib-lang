@@ -25,6 +25,15 @@ jobs:
       - name: Conformance corpus (round-trip + idempotence)
         working-directory: impl
         run: python tests/run_corpus.py
+      # The scale remediation replaced the primitives that supply iteration order, so the
+      # golden net pins every projection + all 7 query axes + the op path byte-for-byte.
+      # A reordering here is a correctness regression, not a perf change.
+      - name: Golden outputs (projections · 7 query axes · op path · permutations)
+        run: python impl/tests/run_golden.py
+      - name: Deep nesting (recursion is an axis independent of node count)
+        run: python impl/tests/test_deep_nesting.py
+      - name: Index coherence fuzz (a stale derived index corrupts query results)
+        run: python impl/tests/test_index_fuzz.py
       # The `mcp` SDK requires Python >=3.10, so the containment test can only run there.
       # The core stays 3.9-compatible and is covered by the corpus + CLI steps on every version.
       - name: MCP path containment (must hold under -O, where asserts vanish)
@@ -64,7 +73,7 @@ jobs:
         with: { node-version: "20" }
       - name: Real tokenizer (the gate runner aborts rather than estimate)
         run: npm ci   # lockfile-pinned, so the gate's token counts are reproducible
-      - name: Programmatic freeze gates (G1, G4, G5, G6, G7)
+      - name: Programmatic freeze gates (G1, G4, G5, G6, G7, G9)
         run: python bench/run_gates.py
       - name: Fail if any gate regressed
         run: grep -q "ALL PASS" bench/gate-report.md

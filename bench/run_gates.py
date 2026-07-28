@@ -1,8 +1,10 @@
 """Freeze-gate benchmark runner (Stage 15 §4). Programmatically measurable gates:
 G1 edit economy · G4 implementability · G5 merge/permutation safety · G6 round-trip
-G7 cache-prefix survival.  (G2/G3 protocols in bench/g2-g3-protocol.md; G8 in tokenizer-report.md)
+G7 cache-prefix survival · G9 scale (bench/gate_scale.py).
+(G2/G3 protocols in bench/g2-g3-protocol.md; G8 in tokenizer-report.md)
 Run from repo root: python bench/run_gates.py        (real o200k tokens; needs gpt-tokenizer)
                     python bench/run_gates.py --estimate   (chars/4; every figure labelled ESTIMATE)
+                    python bench/run_gates.py --no-scale   (skip G9; it dominates runtime)
 
 Token counts come from node gpt-tokenizer (offline BPE). If it is unavailable the runner ABORTS
 rather than silently degrading to chars/4 — a previous version did degrade, and overwrote a real
@@ -18,6 +20,7 @@ from sarib.ops import fold                               # noqa: E402
 from sarib import __version__                            # noqa: E402
 
 ESTIMATE = "--estimate" in sys.argv
+SKIP_SCALE = "--no-scale" in sys.argv
 TOK_METHOD = "chars/4 ESTIMATE (not a real tokenizer)" if ESTIMATE else "o200k (offline gpt-tokenizer)"
 _JS = ("const{encode}=require('gpt-tokenizer/cjs/encoding/o200k_base');"
        "process.stdout.write(String(encode(require('fs').readFileSync(0,'utf8')).length))")
@@ -144,12 +147,26 @@ def main():
                f"- Canonical form: {len(b)} lines; stable prefix {common} lines ({pct:.1f}%); changed lines: {changed}",
                f"- **{'PASS' if g7 else 'FAIL'}**", ""]
 
+    # ---- G9: scale (cost slope + capacity) ----
+    # Added after the 2026-07-27 finding that every gate above passes at 301 nodes,
+    # which is inside the flat part of the cost curve (plans/01-scale-remediation.md).
+    if SKIP_SCALE:
+        g9 = True
+        report += ["## G9 · Scale", "- SKIPPED (--no-scale)", ""]
+    else:
+        sys.path.insert(0, str(ROOT / "bench"))
+        from gate_scale import run as run_scale          # noqa: PLC0415
+        s = run_scale()
+        g9 = s["passed"]
+        report += s["report_lines"]
+
     report += ["## G2/G3/G8 status",
                "- G8 glyphs: PASS on GPT-family (bench/tokenizer-report.md); open-weight re-run pending.",
                "- G2 agent accuracy: measured cross-model run → bench/g2-results.md (runner: bench/run_g2.py).",
                "- G3 human readability: protocol (needs human raters) → bench/g2-g3-protocol.md.", ""]
-    ok = all([g1, g4, g5, g6, g7])
-    report.append(f"**Programmatic gates: {'ALL PASS' if ok else 'FAILURES PRESENT'}** (G1,G4,G5,G6,G7)")
+    ok = all([g1, g4, g5, g6, g7, g9])
+    report.append(f"**Programmatic gates: {'ALL PASS' if ok else 'FAILURES PRESENT'}** "
+                  f"(G1,G4,G5,G6,G7,G9)")
     (ROOT / "bench" / "gate-report.md").write_text("\n".join(report), encoding="utf-8")
     print("\n".join(report))
 
