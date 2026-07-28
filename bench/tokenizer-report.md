@@ -1,11 +1,11 @@
 # Sprint 0 — Tokenizer verification report (RA11 / freeze-gate G8)
 
 **Date:** 2026-07-19 · **Method:** `bench/tokenizer_check.js` (npm `gpt-tokenizer`, offline BPE ranks) · **Encodings:** o200k_base (GPT-4o/o-series), cl100k_base (GPT-4/3.5), r50k_base (GPT-2 lineage)
-**Residual:** open-weight tokenizers (Llama/Qwen) unreachable in-sandbox (network blocked) — re-run against them before final freeze. GPT-family results below are definitive for those encodings.
+**Residual — CLOSED 2026-07-29:** the open-weight tokenizers were unreachable in-sandbox when this ran. They have since been measured with identical test strings → **`bench/tokenizer-open-weight.md`** (Llama 3.1 · Qwen 2.5 · Mistral v0.3 · Gemma 2 · DeepSeek-V3 (`bench/tokenizer-open-weight.md`)): PASS, no fragmentation. GPT-family results below remain definitive for those encodings.
 
 ## Verdict
 
-**The Candidate-A glyph set is confirmed token-cheap. No fatal fragmentation. RA11 → mitigated (GPT-family measured; open-weight residual).**
+**The Candidate-A glyph set is confirmed token-cheap. No fatal fragmentation. RA11 → resolved (GPT-family here; five open-weight vocabularies in `bench/tokenizer-open-weight.md`).**
 
 ## Key measurements
 
@@ -36,4 +36,5 @@ This lands inside the Stage 10 estimate (20–35%) and is now a measured fact: *
 
 - RA11 updated in the risk register (mitigated; open-weight residual noted).
 - Stage 14 §7 glyph table: status updated from "provisional" to "verified (GPT-family)".
-- Re-run `bench/tokenizer_check.js` against Llama-3/Qwen tokenizers before final v1.0 freeze (G8 completes then).
+- ~~Re-run against Llama-3/Qwen tokenizers before final v1.0 freeze~~ → **done 2026-07-29**, `bench/tokenizer_check_open.py` → `bench/tokenizer-open-weight.md`. G8's sigil criterion is complete.
+- **Reproducibility gap found while doing it:** the Candidate A-vs-B whole-file comparison above cannot be re-run — `examples/B-outline-dense.sarib` is not in the repository and has never been committed. The 26.9% figure stands as a 2026-07-19 measurement but is not currently verifiable. It informed D-061 (A ratified as normative), which is already decided, so this is a provenance gap rather than an open question. Re-add the file, or mark the figure historical.

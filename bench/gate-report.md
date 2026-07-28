@@ -1,6 +1,6 @@
 # Freeze-gate run — programmatic gates
 
-Date: 2026-07-28 · impl v0.1.6 · tokens = o200k (offline gpt-tokenizer)
+Date: 2026-07-29 · impl v0.1.6 · tokens = o200k (offline gpt-tokenizer)
 
 ## G1 · Edit economy (target: op ≤1% of regeneration)
 - KB size: 10042 tokens (301 nodes)
@@ -30,21 +30,21 @@ Exponent fitted over **5 sizes, 1,211–62,221 nodes** (ladder escalates to 50,0
 
 | path | 1,211n | 4,922n | 12,450n | 31,092n | 62,221n | slope |
 |---|---|---|---|---|---|---|
-| parse | 9.5 ms | 34.5 ms | 82.3 ms | 232.8 ms | 744.7 ms | **1.08** |
-| canon | 9.0 ms | 31.1 ms | 70.2 ms | 204.4 ms | 687.6 ms | **1.07** |
-| walk | 0.1 ms | 0.7 ms | 1.4 ms | 6.0 ms | 16.0 ms | **1.19** |
-| query-filter | 0.4 ms | 1.5 ms | 3.1 ms | 11.7 ms | 26.8 ms | **1.05** |
-| query-graph | 2.2 ms | 7.6 ms | 22.1 ms | 111.4 ms | 264.2 ms | **1.24** |
-| render | 1.7 ms | 4.7 ms | 15.8 ms | 73.5 ms | 214.3 ms | **1.25** |
+| parse | 6.5 ms | 27.7 ms | 73.0 ms | 188.2 ms | 395.1 ms | **1.04** |
+| canon | 5.8 ms | 23.9 ms | 63.7 ms | 157.8 ms | 318.5 ms | **1.02** |
+| walk | 0.1 ms | 0.4 ms | 1.1 ms | 3.2 ms | 6.6 ms | **1.07** |
+| query-filter | 0.3 ms | 1.0 ms | 2.5 ms | 6.4 ms | 14.2 ms | **0.99** |
+| query-graph | 1.4 ms | 5.7 ms | 18.1 ms | 48.6 ms | 106.8 ms | **1.11** |
+| render | 0.8 ms | 3.7 ms | 10.6 ms | 29.5 ms | 65.1 ms | **1.11** |
 
-- Worst slope: **render = 1.25** (≤1.3 required) → PASS
+- Worst slope: **query-graph = 1.11** (≤1.3 required) → PASS
 - Capacity: **30,000 nodes** (≥30,000 required) → PASS
-  - ladder: 500n=0.01s · 1,000n=0.03s · 2,000n=0.07s · 4,000n=0.13s · 8,000n=0.35s · 16,000n=0.75s · 30,000n=1.41s
+  - ladder: 500n=0.01s · 1,000n=0.02s · 2,000n=0.03s · 4,000n=0.07s · 8,000n=0.14s · 16,000n=0.28s · 30,000n=0.54s
 
 - **PASS**
 
 ## G2/G3/G8 status
-- G8 glyphs: PASS on GPT-family (bench/tokenizer-report.md); open-weight re-run pending.
+- G8 glyphs: **PASS** on GPT-family (bench/tokenizer-report.md) AND on five open-weight tokenizers — Llama 3.1, Qwen 2.5, Mistral v0.3, Gemma 2, DeepSeek-V3 (bench/tokenizer-open-weight.md). Not run in CI: it fetches tokenizer.json over the network, so it is a pre-freeze artifact rather than a per-commit check — re-run `python bench/tokenizer_check_open.py`.
 - G2 agent accuracy: measured cross-model run → bench/g2-results.md (runner: bench/run_g2.py).
 - G3 human readability: protocol (needs human raters) → bench/g2-g3-protocol.md.
 

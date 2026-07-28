@@ -177,7 +177,11 @@ def main():
         report += s["report_lines"]
 
     report += ["## G2/G3/G8 status",
-               "- G8 glyphs: PASS on GPT-family (bench/tokenizer-report.md); open-weight re-run pending.",
+               "- G8 glyphs: **PASS** on GPT-family (bench/tokenizer-report.md) AND on five "
+               "open-weight tokenizers — Llama 3.1, Qwen 2.5, Mistral v0.3, Gemma 2, "
+               "DeepSeek-V3 (bench/tokenizer-open-weight.md). Not run in CI: it fetches "
+               "tokenizer.json over the network, so it is a pre-freeze artifact rather than a "
+               "per-commit check — re-run `python bench/tokenizer_check_open.py`.",
                "- G2 agent accuracy: measured cross-model run → bench/g2-results.md (runner: bench/run_g2.py).",
                "- G3 human readability: protocol (needs human raters) → bench/g2-g3-protocol.md.", ""]
     ok = all([g1, g4, g5, g6, g7, g9])

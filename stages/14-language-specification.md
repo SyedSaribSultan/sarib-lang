@@ -98,7 +98,7 @@ A `.sarib` file is valid at any of six progressive rungs (L0 prose → L5 schema
 
 A CommonMark superset (D-045): a `.sarib` file renders acceptably in any Markdown renderer; unknown marks degrade to literal text. Discipline from djot (unambiguous, local, no-backtracking); surface from Pandoc/MyST/Dataview.
 
-**Conventions** (D-046) — *glyphs verified token-cheap on GPT-family encodings (o200k/cl100k/r50k), 2026-07-19, `bench/tokenizer-report.md`; open-weight re-run pending before freeze (RA11/G8)*:
+**Conventions** (D-046) — *glyphs verified token-cheap on GPT-family encodings (o200k/cl100k/r50k), 2026-07-19, `bench/tokenizer-report.md`, **and on five open-weight tokenizers** 2026-07-29 — Llama 3.1 · Qwen 2.5 · Mistral v0.3 · Gemma 2 · DeepSeek-V3 (`bench/tokenizer-open-weight.md`). G8 sigil criterion complete; RA11 closed*:
 
 | Construct | Surface | Model |
 |---|---|---|
