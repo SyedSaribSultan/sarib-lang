@@ -84,3 +84,5 @@ Lead with the answer, then support it. Truth-density over volume; causal precisi
 | Measured gate + scale results | `bench/gate-report.md`, `bench/scale-report.md` |
 
 If this file and a stage document ever disagree, the stage + decision log win — then fix this file.
+
+Communication rules: follow `~/.claude/CLAUDE.md` (global). It loads alongside this file.
