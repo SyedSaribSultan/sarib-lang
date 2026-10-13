@@ -144,3 +144,7 @@ Restart the client, approve the server, and just talk: *"which tasks are open?"*
 Still outstanding: **G3** (cold human readability, needs raters) and an open-weight tokenizer re-run. The spec freezes only when the gates are green — if they fail, the design changes, not the benchmark. Contributions that run the protocols, port the parser (TS/Rust), or break the conformance corpus are the most valuable ones.
 
 Licenses: code MIT, spec CC-BY-4.0. Conformance is defined by `impl/tests/corpus/`, not by any implementation.
+
+## Author
+
+Built by [Syed Sarib Sultan](https://syedsarib.com), senior product design engineer. More work and guides at [syedsarib.com](https://syedsarib.com).
