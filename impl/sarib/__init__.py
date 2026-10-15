@@ -7,6 +7,6 @@ from .render import fmt, VIEWS
 from .ops import apply, fold, OpRejected
 from .query import query
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 __all__ = ["parse", "canon", "fmt", "VIEWS", "apply", "fold", "OpRejected", "query", "__version__"]

@@ -2,7 +2,9 @@
 
 **PUBLISHED 2026-07-20:** https://github.com/SyedSaribSultan/sarib-lang — steps 1–4 done (repo, push, description, topics) plus the v0.1 Release. Remaining from step 5 (optional): pinned G2/G3 issue, MCP community listing, announcement post. The checklist below is kept for provenance.
 
-**LATEST: 0.1.4 / extension 0.3.0 shipped 2026-07-26** — `sarib` 0.1.4 on PyPI, `vscode-sarib-0.3.0.vsix` on the [v0.1.4 Release](https://github.com/SyedSaribSultan/sarib-lang/releases/tag/v0.1.4). Preview now works in any folder. The stale `vscode-sarib-0.2.0.vsix` asset was deleted from the v0.1 Release (its body points forward); the file is still in `editors/vscode-sarib/` locally and rebuildable from the `v0.1` tag.
+**LATEST: 0.1.7 / extension 0.3.1 (2026-10-15)** — `sarib` 0.1.7 on PyPI, `vscode-sarib-0.3.1.vsix` on the [v0.1.7 Release](https://github.com/SyedSaribSultan/sarib-lang/releases/tag/v0.1.7). Earlier: 0.1.4 / extension 0.3.0 (2026-07-26). Follow the **Release runbook** at the bottom for the next one.
+
+**Historical — the original one-time publishing checklist (done 2026-07-20).** Kept for provenance only: the paths, the "~700-LOC" description and the 0.2.0 `.vsix` below are as they were then, not current. Current measured numbers live in `bench/gate-report.md`.
 
 1. **Create the repo:** github.com → New → `sarib-lang` (public). No template, no auto-README.
 2. **Swap the front door:** rename `README.md` → `HISTORY.md` (the session log is valuable — keep it), then `README-public.md` → `README.md`.
@@ -19,7 +21,7 @@
 
 Pre-flight already done: licenses (MIT + CC-BY-4.0), .gitignore, conformance corpus green, gate report committed, no secrets in tree.
 
-## Release runbook — how 0.1.4 shipped (repeat this for the next one)
+## Release runbook — how 0.1.4 through 0.1.7 shipped (repeat this for the next one)
 
 1. **Commit + tag:** `git tag -a v0.1.X -m "…" && git push origin main --tags`. The tag alone
    publishes nothing — `release.yml` fires on *release published* (or manual dispatch), not on tags.
