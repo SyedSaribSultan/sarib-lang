@@ -55,4 +55,4 @@ The register's headline finding: **the lethal risks are not technical.** The mod
 
 ## Cadence
 
-One stage (or one coherent chunk of a stage) per working session. Session log lives in `README.md`. Do not optimize for speed; optimize for the thing surviving contact with Stage N+1's critique.
+One stage (or one coherent chunk of a stage) per working session. Session log lives in `HISTORY.md` (it moved out of `README.md` when the public front door replaced it). Do not optimize for speed; optimize for the thing surviving contact with Stage N+1's critique.

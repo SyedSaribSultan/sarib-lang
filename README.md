@@ -2,7 +2,7 @@
 
 *One plain-text source of truth. Humans write it like Markdown. Agents edit it like a database. Every view — document, outline, board, graph, timeline, context window — is a projection.*
 
-**Status: v0.1 — working reference implementation; spec complete; freeze gated on benchmarks.** 5 gates green and measured; **G2 measured with a mixed verdict** (4 models complete, 5 rate-capped — [`bench/g2-results.md`](bench/g2-results.md)); G3 blocked on human raters; G8 partial pending an open-weight tokenizer re-run. This is a research-grade open standard proposal, built in the open with its full design history — including the results that went against it.
+**Status: v0.1 — working reference implementation; spec complete; freeze gated on benchmarks.** 7 of 9 freeze gates pass (G1, G4–G9 — [`bench/gate-report.md`](bench/gate-report.md)); **G2 measured with a mixed verdict** (4 models complete, 5 rate-capped — [`bench/g2-results.md`](bench/g2-results.md)); G3 blocked on human raters. This is a research-grade open standard proposal, built in the open with its full design history — including the results that went against it.
 
 ```markdown
 # Q3 Planning
@@ -24,7 +24,7 @@ Every knowledge format serves one master: Markdown serves documents, JSON serves
 - **Humans** write prose + light marks (a Markdown superset; zero marks required — plain prose is valid).
 - **Agents** query bounded subgraphs and apply id-addressed atomic operations — never regeneration.
 
-**Measured, not promised.** A point edit costs **0.50%** of regenerating a 10k-token file — a 200× reduction against whole-document regeneration ([`bench/gate-report.md`](bench/gate-report.md), G1; run it yourself with `python bench/run_gates.py`). A targeted question over this project's real 70-risk register costs **230 tokens** of context instead of 6,652 ([`bench/g2-g3-protocol.md`](bench/g2-g3-protocol.md) — which also records a case where the win narrows to 1.8×). Concurrent edits merge order-independently (SEC, CRDT-convergent ops). Full round-trip losslessness enforced by a conformance corpus. The conformance surface — parser, canonicalizer, model, op engine, query engine, projections, CLI, MCP server — is **891 lines of Python**, inside a ≤1000-LOC budget declared before it was measured; the Markdown importer is a further 249 lines, reported outside the budget as a consumer.
+**Measured, not promised.** A point edit costs **0.50%** of regenerating a 10k-token file — a 200× reduction against whole-document regeneration ([`bench/gate-report.md`](bench/gate-report.md), G1; run it yourself with `python bench/run_gates.py`). A targeted question over this project's real 70-risk register costs **230 tokens** of context instead of 6,652 ([`bench/g2-g3-protocol.md`](bench/g2-g3-protocol.md) — which also records a case where the win narrows to 1.8×). Concurrent edits merge order-independently (SEC, CRDT-convergent ops). Full round-trip losslessness enforced by a conformance corpus. The conformance surface — parser, canonicalizer, model, op engine, query engine, projections — is **742 lines of Python**, inside a ≤1000-LOC budget declared before it was measured. The budget was narrowed to that surface in D-064 (2026-07-28): the CLI and MCP server (359 lines) are transports the spec does not require, and the importer and previewer (473 lines) are consumers. Both are still measured and reported every run; the whole package is 1,574 lines ([`bench/gate-report.md`](bench/gate-report.md), G4).
 
 ## Install & try it (60 seconds)
 
@@ -129,19 +129,19 @@ Restart the client, approve the server, and just talk: *"which tasks are open?"*
 |---|---|
 | `stages/14-language-specification.md` | **The spec** (start here) |
 | `stages/01…15-*.md` | The full staged design history — each stage critiques its predecessor |
-| `impl/` | Reference implementation (Python, 891 LOC of conformance surface) + conformance corpus |
+| `impl/` | Reference implementation (Python; 742 LOC conformance surface, 1,574 whole package) + conformance corpus |
 | `examples/` | The normative syntax candidate (A); candidate B is specified in `stages/10` but not shipped as a file |
 | `bench/` | Freeze-gate benchmarks + tokenizer verification + the measured G2 run |
 | `docs/` | Plain-language explainer of how it works |
 | `research/` | 9 cited research files (why formats win/die, LLM format evidence, round-trip law) |
-| `decisions/` · `risks/` | 61 logged decisions with reversal conditions · living risk register |
+| `decisions/` · `risks/` | 66 logged decisions (D-001…D-066) with reversal conditions · living risk register |
 | `dogfood/` | The project's own decision log & risk register as `.sarib`, managed via ops |
 
 ## Honest status & what's next
 
 **G2 has been run, and the honest reading is mixed** ([`bench/g2-results.md`](bench/g2-results.md), raw per-call records included). Answering from a bounded query beat pasting whole Markdown by **+27.8 points on a 7B model** (88.9% vs 60.2%, McNemar p=0.002) and reached **parity at ~⅓ the input tokens on a 120B model** (100% vs 99.1%, 420 vs 1,325 tokens). But pooled across models the gain is **not statistically significant** (Δ=+0.083, p=0.065), one model (`llama3.2`, 3B) **failed** the criterion outright at −0.111, and — the result that matters most — **feeding a model the whole `.sarib` file is not better than whole Markdown**, at ~46% more tokens. So the win is the bounded-retrieval-and-atomic-edit *architecture*, not syntax density. That is what D-002 predicted, and it is why the syntax is not the pitch.
 
-Still outstanding: **G3** (cold human readability, needs raters) and an open-weight tokenizer re-run. The spec freezes only when the gates are green — if they fail, the design changes, not the benchmark. Contributions that run the protocols, port the parser (TS/Rust), or break the conformance corpus are the most valuable ones.
+Still outstanding: **G3** (cold human readability, needs raters). G8 passed on five open-weight tokenizers on 2026-07-29 ([`bench/tokenizer-open-weight.md`](bench/tokenizer-open-weight.md)). The spec freezes only when the gates are green — if they fail, the design changes, not the benchmark. Contributions that run the protocols, port the parser (TS/Rust), or break the conformance corpus are the most valuable ones.
 
 Licenses: code MIT, spec CC-BY-4.0. Conformance is defined by `impl/tests/corpus/`, not by any implementation.
 

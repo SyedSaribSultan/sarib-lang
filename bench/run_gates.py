@@ -141,9 +141,10 @@ def main():
 
     # ---- G6: round-trip (corpus already enforces; re-assert on the big KB) ----
     g6 = canon(parse(fmt(parse(kb)))) == canon(parse(kb))
+    n_corpus = len(list((ROOT / "impl" / "tests" / "corpus").glob("*.sarib")))   # was hardcoded
     report += ["## G6 · Lossless round-trip (surface→model→surface→model)",
                f"- 10k-token KB: **{'PASS' if g6 else 'FAIL'}** "
-               f"(+ 6/6 corpus cases enforce this — `python impl/tests/run_corpus.py`)", ""]
+               f"(+ {n_corpus} corpus cases enforce this — `python impl/tests/run_corpus.py`)", ""]
 
     # ---- G7: cache-prefix survival ----
     doc2 = parse(kb)
