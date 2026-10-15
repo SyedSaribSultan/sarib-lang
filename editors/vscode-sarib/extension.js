@@ -3,6 +3,7 @@
 // Python previewer over stdin and shows the returned HTML in a webview.
 const vscode = require('vscode');
 const cp = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -35,14 +36,22 @@ function findRunner(doc) {
   if (explicit) return { args: [explicit] };
 
   const roots = [];
-  // Walk up from the file itself, so a .sarib file anywhere inside the repo works
-  // even when the repo is not the open workspace folder.
+  // Walk up from the file, but only INSIDE a trusted workspace folder. A checkout found
+  // here has its impl/ put on PYTHONPATH and executed, so an ancestor directory the user
+  // never opened (a Downloads folder, a shared drive) must not be able to supply code.
+  const folders = vscode.workspace.isTrusted
+    ? (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath) : [];
+  const inside = (d) => folders.some((f) => {
+    const rel = path.relative(f, d);
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+  });
   if (doc && doc.uri.scheme === 'file') {
-    for (let d = path.dirname(doc.uri.fsPath), prev = null; d !== prev; prev = d, d = path.dirname(d)) {
+    for (let d = path.dirname(doc.uri.fsPath), prev = null; d !== prev && inside(d);
+      prev = d, d = path.dirname(d)) {
       roots.push(d);
     }
   }
-  for (const f of vscode.workspace.workspaceFolders || []) roots.push(f.uri.fsPath);
+  for (const f of folders) roots.push(f);
   for (const r of roots) {
     // In-package previewer: import it as a module, with impl/ on the path (relative imports).
     if (fs.existsSync(path.join(r, 'impl', 'sarib', 'preview.py'))) {
@@ -85,7 +94,9 @@ function setupHelp(err, stderr, py) {
 }
 
 // Remember the selected tab across re-renders (webview state survives html swaps).
-const STATE_JS = `<script>(function(){var v=acquireVsCodeApi();var s=v.getState();
+// Injected with a fresh nonce per render, added to the page's own CSP (which allows the
+// previewer's inline scripts by hash), so nothing else inline can run in the webview.
+const STATE_JS = (nonce) => `<script nonce="${nonce}">(function(){var v=acquireVsCodeApi();var s=v.getState();
 if(s&&s.tab){var b=document.querySelector('nav button[data-t="'+s.tab+'"]');if(b)b.click();}
 document.querySelectorAll('nav button').forEach(function(b){
   b.addEventListener('click',function(){v.setState({tab:b.dataset.t});});});
@@ -112,7 +123,10 @@ function render(doc) {
       return;
     }
     panel.title = 'Preview ' + path.basename(doc.fileName);
-    panel.webview.html = stdout.replace('</body>', STATE_JS + '</body>');
+    const nonce = crypto.randomBytes(16).toString('base64');
+    panel.webview.html = stdout
+      .replace("script-src ", `script-src 'nonce-${nonce}' `)   // previewer >=0.1.7 ships a CSP
+      .replace('</body>', STATE_JS(nonce) + '</body>');
   });
   proc.stdin.on('error', () => {}); // a missing interpreter closes stdin before we write
   proc.stdin.write(doc.getText(), 'utf8');

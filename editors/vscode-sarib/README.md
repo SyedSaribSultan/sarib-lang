@@ -25,7 +25,7 @@ The extension holds no rendering logic. It pipes the buffer to the Python
 previewer (`sarib.preview`) over stdin, so preview and CLI can never disagree.
 Requirements:
 
-- **Python 3** on your PATH (or set `sarib.pythonPath` in Settings).
+- **Python 3** on your PATH (or set `sarib.pythonPath` in your **user** Settings).
 - The **`sarib` package installed** for that Python: `pip install sarib`. This is
   all you need — preview then works on `.sarib` files in *any* folder, with no
   repo checkout and no configuration.
@@ -36,9 +36,16 @@ How the previewer is resolved, first match wins:
 | Order | Source | Use |
 |---|---|---|
 | 1 | `sarib.previewScript` setting | pin an exact `tools/preview.py` (a `~` prefix is expanded) |
-| 2 | a sarib checkout in any parent folder of the open file | working-tree code previews itself |
+| 2 | a sarib checkout in a parent folder of the open file, inside the workspace | working-tree code previews itself |
 | 3 | a sarib checkout in a workspace folder | same, for multi-root workspaces |
 | 4 | the installed `sarib` package (`python -m sarib.preview`) | any folder, unconfigured — the normal case |
+
+**Security.** The preview runs a program, so the extension is disabled in Restricted
+Mode (untrusted workspaces). `sarib.pythonPath` and `sarib.previewScript` are
+machine-scoped: only your user settings can set them, never a cloned repo's
+`.vscode/settings.json`. Checkout discovery (rows 2–3) never looks above the open
+workspace folders. The page carries a Content-Security-Policy, and mermaid.js is pinned
+to one version with a Subresource Integrity hash.
 
 So a repo checkout always wins over the installed package (edit `impl/`, see it in
 the preview), and everywhere else the installed package takes over.

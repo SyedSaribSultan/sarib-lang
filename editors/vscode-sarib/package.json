@@ -2,13 +2,19 @@
   "name": "vscode-sarib",
   "displayName": "sarib",
   "description": "Syntax highlighting for .sarib knowledge files (Markdown superset).",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "sarib",
   "license": "MIT",
   "engines": { "vscode": "^1.60.0" },
   "categories": ["Programming Languages"],
   "main": "./extension.js",
   "activationEvents": ["onLanguage:sarib", "onCommand:sarib.preview"],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "The preview runs a Python interpreter and may load a sarib checkout found in the workspace."
+    }
+  },
   "contributes": {
     "commands": [
       {
@@ -40,11 +46,13 @@
         "sarib.pythonPath": {
           "type": "string",
           "default": "python",
+          "scope": "machine",
           "description": "Python executable used to run the previewer."
         },
         "sarib.previewScript": {
           "type": "string",
           "default": "",
+          "scope": "machine",
           "description": "Absolute path to a repo checkout's tools/preview.py. Leave empty to auto-detect: a sarib checkout above the open file or in the workspace folders, else the installed `sarib` Python package (works in any folder)."
         }
       }
