@@ -15,3 +15,7 @@ updates:
   - package-ecosystem: pip
     directory: /impl
     schedule: { interval: monthly }
+    # mcp 2.x breaks sarib-mcp; the extra is capped <2 until the server is ported.
+    ignore:
+      - dependency-name: mcp
+        versions: [">=2"]
