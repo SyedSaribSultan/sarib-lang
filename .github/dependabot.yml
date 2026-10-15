@@ -1,0 +1,17 @@
+# Actions are pinned to full commit SHAs (a tag can be moved; a SHA cannot). Dependabot
+# keeps those pins current and opens a PR with the new SHA + version comment.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ["*"] }
+  # The pinned tokenizer the freeze gates measure with (package.json + lockfile at the root).
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: monthly }
+  # impl/pyproject.toml: the core has no runtime deps; this watches the `mcp` extra.
+  - package-ecosystem: pip
+    directory: /impl
+    schedule: { interval: monthly }
