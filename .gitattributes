@@ -2,6 +2,7 @@
 * text=auto
 *.sarib text eol=lf
 *.expected text eol=lf
+*.diagnostics text eol=lf
 *.py text eol=lf
 *.md text eol=lf
 *.json text eol=lf

@@ -1,0 +1,8 @@
+{"sarib":"0.1"}
+{"hint":"heading","id":"n1","kind":"node","order":0,"title":"Q3"}
+{"hint":"heading","id":"t1","kind":"node","order":0,"parent":"n1","props":{"status":"todo"},"title":"Migrate invoices","type":"task"}
+{"hint":"heading","id":"t1~2","kind":"node","order":1,"parent":"n1","props":{"status":"accepted"},"title":"Adopt Stripe","type":"decision"}
+{"hint":"item","id":"t1~3","kind":"node","order":0,"parent":"t1~2","title":"Draft rollout plan"}
+{"hint":"item","id":"p1","kind":"node","order":1,"parent":"t1~2","props":{"due":"2026-11-01"},"title":"Notify finance"}
+{"hint":"heading","id":"alice","kind":"node","order":2,"parent":"n1","title":"Alice"}
+{"id":"e1","kind":"edge","source":"t1","target":"alice","type":"owner"}

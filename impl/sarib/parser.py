@@ -49,11 +49,35 @@ def parse(src: str) -> Doc:
     doc = Doc()
     counter = [0]
 
-    def make_id(explicit):
-        if explicit:
-            return explicit
-        counter[0] += 1
-        return f"n{counter[0]}"
+    line_of: dict = {}  # node id -> 1-based source line, for located diagnostics
+
+    def place(n: Node, explicit, line: int) -> Node:
+        """Give `n` its id and add it. A ^id already in use NEVER overwrites the earlier
+        node — that silently deleted it (invariant 1, D-066). The later node keeps its
+        authored id in `_id` (so fmt writes it back unchanged), takes the deterministic
+        model id `<id>~<k>`, and the collision is reported with both locations."""
+        if not explicit:
+            while f"n{counter[0] + 1}" in doc.nodes:   # skip ids an explicit ^nK took
+                counter[0] += 1
+            counter[0] += 1
+            n.id = f"n{counter[0]}"
+        elif explicit in doc.nodes:
+            k = 2
+            while f"{explicit}~{k}" in doc.nodes:
+                k += 1
+            n.id = f"{explicit}~{k}"
+            n.properties["_id"] = explicit
+            first = f" (line {line_of[explicit]})" if explicit in line_of else ""
+            doc.diagnostics.append(f"duplicate-id: ^{explicit} at line {line} is already "
+                                   f"node {explicit}{first}; kept as {n.id}")
+        else:
+            n.id = explicit
+            if explicit[:1] == "n" and explicit[1:].isdigit():
+                n.properties["_id"] = explicit    # authored, though auto-shaped: fmt keeps it
+        if line:
+            line_of[n.id] = line
+        doc.nodes[n.id] = n
+        return n
 
     lines = src.splitlines()
     i = 0
@@ -98,9 +122,8 @@ def parse(src: str) -> Doc:
         para = []
         if not text or text.startswith("<!--"):
             return
-        n = Node(id=make_id(None), kind_hint="prose", content=text,
-                 parent=container(), order=next_order(container()))
-        doc.nodes[n.id] = n
+        n = place(Node(id="", kind_hint="prose", content=text, parent=container(),
+                       order=next_order(container())), None, 0)
         scan_inline(n.id, text)
 
     while i < len(lines):
@@ -123,11 +146,10 @@ def parse(src: str) -> Doc:
             text, nid, slug, ntype, props = _strip_marks(m.group(2))
             while stack and stack[-1][0] >= level:
                 stack.pop()
-            n = Node(id=make_id(nid), kind_hint="heading", title=text, type=ntype,
-                     slug=slug, properties=props, parent=container(),
-                     order=next_order(container()))
+            n = place(Node(id="", kind_hint="heading", title=text, type=ntype,
+                           slug=slug, properties=props, parent=container(),
+                           order=next_order(container())), nid, i + 1)
             n.properties["_level"] = level
-            doc.nodes[n.id] = n
             scan_inline(n.id, text)
             stack.append((level, n.id))
             current = n
@@ -138,10 +160,9 @@ def parse(src: str) -> Doc:
         if m:
             flush_para()
             text, nid, slug, ntype, props = _strip_marks(m.group(2))
-            n = Node(id=make_id(nid), kind_hint="item", title=text, type=ntype,
-                     slug=slug, properties=props, parent=container(),
-                     order=next_order(container()))
-            doc.nodes[n.id] = n
+            n = place(Node(id="", kind_hint="item", title=text, type=ntype,
+                           slug=slug, properties=props, parent=container(),
+                           order=next_order(container())), nid, i + 1)
             scan_inline(n.id, text)
             current = n
             i += 1

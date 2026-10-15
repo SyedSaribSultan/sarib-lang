@@ -4,7 +4,7 @@ import argparse, json, os, sys, pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from sarib import parse, canon, fmt, VIEWS, apply as apply_op, query as run_query, __version__
-from sarib.ops import OpRejected
+from sarib.ops import OpRejected, write_refusal
 from sarib.importer import build as import_build, DEFAULT_VOCAB
 
 REPO = "https://github.com/SyedSaribSultan/sarib-lang"
@@ -197,6 +197,8 @@ def main(argv=None):
     p.add_argument("--expect", metavar="K=V", action="append",
                    help="only apply if the node still has these values (optimistic concurrency)")
     p.add_argument("--dry-run", action="store_true", help="print the result instead of writing")
+    p.add_argument("--force", action="store_true",
+                   help="write even though the file declares a ^id twice (D-066)")
 
     p = cmd("apply", "Apply any atomic operation, addressed by id (never a rewrite).",
             "kinds: create-node retract-node set-content set-property unset-property\n"
@@ -209,6 +211,8 @@ def main(argv=None):
     p.add_argument("file")
     p.add_argument("--op", required=True, help="JSON operation")
     p.add_argument("--write", action="store_true", help="write back (default: print)")
+    p.add_argument("--force", action="store_true",
+                   help="write even though the file declares a ^id twice (D-066)")
 
     p = cmd("fmt", "Normalize the author surface to its canonical layout (idempotent).")
     p.add_argument("file")
@@ -264,6 +268,10 @@ def main(argv=None):
             write = not ns.dry_run
         else:
             op, write = json.loads(ns.op), ns.write
+        why = write_refusal(doc) if write and not ns.force else None
+        if why:
+            print(f"REFUSED: {ns.file}: {why}  (or pass --force)")
+            sys.exit(1)
         try:
             apply_op(doc, op)
         except OpRejected as e:

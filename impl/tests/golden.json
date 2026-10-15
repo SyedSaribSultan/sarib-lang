@@ -10710,6 +10710,24 @@
    "walk": "fe05e35052b0c58f",
    "walk_len": 2
   },
+  "corpus/06-duplicate-id.sarib": {
+   "board": "8c4051515e80b705",
+   "canon": "767d54ee17c0c8c7",
+   "diagnostics": [
+    "duplicate-id: ^t1 at line 10 is already node t1 (line 6); kept as t1~2",
+    "duplicate-id: ^t1 at line 13 is already node t1 (line 6); kept as t1~3"
+   ],
+   "fmt": "f25b1a78711d77f4",
+   "invariants": [],
+   "mermaid": "1d8a5109f6d4dd11",
+   "n_edges": 1,
+   "n_nodes": 6,
+   "outline": "25bffe9ad01bbc5d",
+   "preview": "4142dac4c943871a",
+   "slugs": "e3b0c44298fc1c14",
+   "walk": "f84dabc72db8aba1",
+   "walk_len": 6
+  },
   "dogfood/decision-log.sarib": {
    "board": "01ba4719c80b6fe9",
    "canon": "5fed29fa1c2ded09",

@@ -26,6 +26,22 @@ def _stats(doc: Doc):
     return depth, size, tasks, done
 
 
+def _marks(n) -> str:
+    """Trailing `{.type #slug} ^id` for a heading or item. The id written is the AUTHORED
+    one: a repeated ^id is kept on both nodes (D-066), so a duplicate survives fmt intact
+    and stays visible to `validate` instead of being silently renamed or dropped."""
+    attrs = ([f".{n.type}"] if n.type else []) + ([f"#{n.slug}"] if n.slug else [])
+    marks = " {" + " ".join(attrs) + "}" if attrs else ""
+    sid = n.properties.get("_id", n.id)
+    if "_id" in n.properties or not (sid.startswith("n") and sid[1:].isdigit()):
+        marks += f" ^{sid}"
+    return marks
+
+
+def _fields(n) -> list:
+    return [f"{k}:: {v}" for k, v in n.properties.items() if not k.startswith("_")]
+
+
 def fmt(doc: Doc) -> str:
     """Model -> Candidate-A surface. The document projection; idempotent (D-051)."""
     out = []
@@ -38,26 +54,12 @@ def fmt(doc: Doc) -> str:
     for n in doc.walk(None):
         if n.kind_hint == "heading":
             level = int(n.properties.get("_level", depths[n.id] + 1))
-            marks = ""
-            attrs = []
-            if n.type:
-                attrs.append(f".{n.type}")
-            if n.slug:
-                attrs.append(f"#{n.slug}")
-            if attrs:
-                marks += " {" + " ".join(attrs) + "}"
-            if not n.id.startswith("n") or not n.id[1:].isdigit():
-                marks += f" ^{n.id}"
-            out.append(f"{'#' * level} {n.title}{marks}")
-            for k, v in n.properties.items():
-                if not k.startswith("_"):
-                    out.append(f"{k}:: {v}")
+            out.append(f"{'#' * level} {n.title}{_marks(n)}")
+            out += _fields(n)
             out.append("")
         elif n.kind_hint == "item":
-            t = f"- {n.title}"
-            if n.type:
-                t += f" {{.{n.type}}}"
-            out.append(t)
+            out.append(f"- {n.title}{_marks(n)}")     # items carry id/slug/fields too:
+            out += _fields(n)                         # dropping them lost data on fmt
         else:
             out.append(n.content + "\n")
     return "\n".join(out).rstrip() + "\n"

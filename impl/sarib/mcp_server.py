@@ -13,7 +13,7 @@ import functools, json, pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from mcp.server.fastmcp import FastMCP
 from sarib import parse, canon, fmt, query as run_query
-from sarib.ops import apply as apply_op, OpRejected
+from sarib.ops import apply as apply_op, OpRejected, write_refusal
 from sarib.render import VIEWS
 
 ROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
@@ -84,6 +84,9 @@ def sarib_apply(file: str, op: str) -> str:
     by node/edge id. Guarded ops (expect:{id:{version:v}}) are rejected if stale.
     Writes the updated surface back to the file. Costs a delta, not a regeneration."""
     p, doc = _doc(file)
+    why = write_refusal(doc)          # no override for agents: a human repairs the ^id (D-066)
+    if why:
+        return f"REFUSED: {why}"
     try:
         apply_op(doc, json.loads(op))
     except OpRejected as e:

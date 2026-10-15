@@ -38,6 +38,10 @@ jobs:
       # including the repair. Op-time validation is now scoped to the touched ids (D-065).
       - name: Op validation is local (a damaged file must still be editable)
         run: python impl/tests/test_op_validation.py
+      # A repeated ^id used to overwrite the earlier node; validate said OK and `set` wrote
+      # the loss to disk. Both nodes are now kept and write-back is refused (D-066).
+      - name: Duplicate ^id keeps both nodes and blocks write-back
+        run: python impl/tests/test_duplicate_id.py
       # The `mcp` SDK requires Python >=3.10, so the containment test can only run there.
       # The core stays 3.9-compatible and is covered by the corpus + CLI steps on every version.
       - name: MCP path containment (must hold under -O, where asserts vanish)

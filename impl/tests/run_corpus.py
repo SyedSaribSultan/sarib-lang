@@ -1,5 +1,8 @@
 """Conformance corpus runner (Stage 13 §6, RG2/RM22).
-Each case: corpus/NN-name.sarib -> corpus/NN-name.expected (canonical form).
+Each case: corpus/NN-name.sarib -> corpus/NN-name.expected (canonical form)
+                            + corpus/NN-name.diagnostics (parse diagnostics, one per line;
+                              empty = the case must parse clean). Negative cases live here
+                              too: what a conforming tool must REPORT is part of conformance.
 Also enforces: G6 round-trip (canon(parse(fmt(parse(x)))) == canon(parse(x)))
 and fmt idempotence (D-051). Exit 0 = conforming.
 Regenerate expectations: python run_corpus.py --bless
@@ -17,19 +20,25 @@ def main():
     fails = 0
     for case in sorted(CORPUS.glob("*.sarib")):
         exp = case.with_suffix(".expected")
+        dexp = case.with_suffix(".diagnostics")
         src = case.read_text(encoding="utf-8")
-        got = canon(parse(src))
+        doc = parse(src)
+        got = canon(doc)
+        diags = "".join(d + "\n" for d in doc.diagnostics)
         # G6 round-trip + D-051 idempotence
         rt = canon(parse(fmt(parse(src))))
         rt_ok = rt == got
         idem = fmt(parse(fmt(parse(src)))) == fmt(parse(src))
         if bless:
             exp.write_text(got, encoding="utf-8")
+            dexp.write_text(diags, encoding="utf-8")
             status = "BLESSED"
-        elif not exp.exists():
+        elif not exp.exists() or not dexp.exists():
             status = "NO-EXPECTATION"; fails += 1
         elif got != exp.read_text(encoding="utf-8"):
             status = "FAIL-CANON"; fails += 1
+        elif diags != dexp.read_text(encoding="utf-8"):
+            status = "FAIL-DIAGNOSTICS"; fails += 1
         elif not rt_ok:
             status = "FAIL-ROUNDTRIP"; fails += 1
         elif not idem:

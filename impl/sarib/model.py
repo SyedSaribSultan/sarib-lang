@@ -55,8 +55,11 @@ class Doc:
 
     def _index(self) -> dict:
         if self._idx is None:
-            kids, slugs, out, inn = {}, {}, {}, {}
+            kids, slugs, out, inn, dups = {}, {}, {}, {}, {}
             for n in self.nodes.values():                 # insertion order = document order
+                sid = n.properties.get("_id", n.id)
+                if sid != n.id:                           # a repeated ^id, kept (D-066)
+                    dups.setdefault(sid, [sid]).append(n.id)
                 if n.status == "active":
                     kids.setdefault(n.parent, []).append(n)
                     if n.slug and n.slug not in slugs:    # first wins, as the old scan did
@@ -70,7 +73,7 @@ class Doc:
                 # is the identity the traversal in query.py matches on.
                 out.setdefault(anchor_owner(self, e.source), []).append(eid)
                 inn.setdefault(anchor_owner(self, e.target), []).append(eid)
-            self._idx = {"kids": kids, "slugs": slugs, "out": out, "in": inn}
+            self._idx = {"kids": kids, "slugs": slugs, "out": out, "in": inn, "dups": dups}
         return self._idx
 
     # -- containment helpers (the spanning tree, D-016) --
@@ -93,6 +96,11 @@ class Doc:
     def node_by_slug(self, slug: str) -> Optional[Node]:
         nid = self._index()["slugs"].get(slug)
         return self.nodes[nid] if nid is not None else None
+
+    def ambiguous_ids(self) -> dict:
+        """authored ^id -> [model ids] for every ^id the source declares more than once.
+        Such an id names no single node, so ops refuse it and writers refuse the file (D-066)."""
+        return self._index()["dups"]
 
     # -- crossref adjacency; both lists are in sorted-edge-id order (D-029) --
     def out_edges(self, nid: str):

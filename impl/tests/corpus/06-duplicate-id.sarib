@@ -1,0 +1,17 @@
+# Q3
+
+<!-- Two blocks claim ^t1. Both must survive parse, canon and fmt; the later one is
+     kept as t1~2 and a located duplicate-id diagnostic is reported (invariant 1, D-066). -->
+
+## Migrate invoices {.task} ^t1
+status:: todo
+owner:: [[Alice]]
+
+## Adopt Stripe {.decision} ^t1
+status:: accepted
+
+- Draft rollout plan ^t1
+- Notify finance ^p1
+due:: 2026-11-01
+
+## Alice ^alice

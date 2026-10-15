@@ -1,0 +1,2 @@
+duplicate-id: ^t1 at line 10 is already node t1 (line 6); kept as t1~2
+duplicate-id: ^t1 at line 13 is already node t1 (line 6); kept as t1~3

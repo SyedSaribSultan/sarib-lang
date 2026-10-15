@@ -29,8 +29,35 @@ def _check_expect(doc: Doc, op: dict):
                 raise OpRejected(f"expect: {tid}.{k} != {v!r}")
 
 
+def _check_unambiguous(doc: Doc, op: dict, a: dict):
+    """An id the source declares twice names no single node; guessing one is how an agent
+    edits the wrong record. Refuse it — the second copy stays addressable as `<id>~2` (D-066)."""
+    amb = doc.ambiguous_ids()
+    if not amb:
+        return
+    refs = [op.get("target"), *(op.get("expect") or {})]
+    refs += [a.get(k) for k in ("parent", "source", "target", "into", "concept")]
+    for r in refs:
+        if isinstance(r, str) and r in amb:
+            raise OpRejected(f"ambiguous id {r}: declared by {len(amb[r])} nodes "
+                             f"({', '.join(amb[r])}); give each a unique ^id")
+
+
+def write_refusal(doc: Doc):
+    """Why a transport must not write this file back, or None. While any ^id is declared
+    twice, a write-back could land an edit on the wrong node and would bless a file whose
+    addresses are ambiguous; the repair is renaming one ^id, a text edit (D-066)."""
+    amb = doc.ambiguous_ids()
+    if not amb:
+        return None
+    dup = [d for d in doc.diagnostics if d.startswith("duplicate-id")]
+    return (f"{len(amb)} ^id(s) declared more than once ({', '.join(sorted(amb))}); "
+            "give each node a unique ^id, then retry. " + " | ".join(dup))
+
+
 def apply(doc: Doc, op: dict) -> Doc:
     """Apply one op, preserving the 10 invariants (D-035). Mutates and returns doc."""
+    _check_unambiguous(doc, op, op.get("args", {}))
     _check_expect(doc, op)
     kind, t, a = op["kind"], op.get("target"), op.get("args", {})
     touched = {t} if t else set()      # ids whose invariants this op could disturb (D-065)

@@ -139,7 +139,7 @@ Anything unrecognized → the content of an L0 prose node (Tier-0 total parse, D
 
 ## 8. Validation (normative; full rationale Stage 11)
 
-Three tiers (D-049): **Tier 0** well-formed (total; unrecognized → L0; near-unfailable), **Tier 1** structurally valid (the 10 invariants), **Tier 2** schema-valid (active vocabulary). Only un-parseability blocks; the forgiving surface precludes it. All else is **located, non-fatal diagnostics** carrying node/edge ids: unresolved/ambiguous reference, duplicate slug, dangling/retracted endpoint, cycle-in-acyclic-edge, unknown type/property, cardinality/endpoint-type violation, structure-read-as-prose. Validation is self-hosted and closed-world; diagnostics are deterministic and queryable (D-050). Fidelity: normalization is idempotent to the canonical form; model round-trip is lossless; derived cues are read-transparent (D-051).
+Three tiers (D-049): **Tier 0** well-formed (total; unrecognized → L0; near-unfailable), **Tier 1** structurally valid (the 10 invariants), **Tier 2** schema-valid (active vocabulary). Only un-parseability blocks; the forgiving surface precludes it. All else is **located, non-fatal diagnostics** carrying node/edge ids: unresolved/ambiguous reference, duplicate slug, duplicate id (both nodes kept; the id is ambiguous to ops — D-066), dangling/retracted endpoint, cycle-in-acyclic-edge, unknown type/property, cardinality/endpoint-type violation, structure-read-as-prose. Validation is self-hosted and closed-world; diagnostics are deterministic and queryable (D-050). Fidelity: normalization is idempotent to the canonical form; model round-trip is lossless; derived cues are read-transparent (D-051).
 
 ---
 

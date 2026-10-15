@@ -55,6 +55,7 @@ Diagnostics are structured, located, non-fatal reports — the mechanism that ma
 | unresolved reference | 1 | `[[Adopt billing]]` matches no node (D-024) — link kept as text |
 | ambiguous reference | 1 | a name matches multiple equally-near nodes (D-024) — never auto-picked |
 | duplicate slug | 1 | two nodes claim `{#migrate}` |
+| duplicate id | 1 | two blocks claim `^t1` — both kept, the later as `t1~2`; the id is ambiguous for ops and write-back is refused (D-066, amended 2026-10-15) |
 | dangling/retracted endpoint | 1 | an edge to a retracted node (edge goes dormant, invariant 3) |
 | cycle in acyclic edge type | 1 | a `depends-on` cycle (D-027) — reported, traversal still safe |
 | unknown type/property | 2 | `{.tsak}` under an active schema — probable typo |
