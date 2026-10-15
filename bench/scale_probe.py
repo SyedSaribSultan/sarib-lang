@@ -17,7 +17,6 @@ from __future__ import annotations
 import datetime
 import json
 import math
-import os
 import pathlib
 import subprocess
 import sys
@@ -242,7 +241,7 @@ def main() -> int:
     sha = (sys.argv[sys.argv.index("--before") + 1] if "--before" in sys.argv else BEFORE_SHA)
 
     print(f"python {sys.version.split()[0]} · impl={ROOT / 'impl'}")
-    print(f"\n== current tree · times in ms (best of 3) ==")
+    print("\n== current tree · times in ms (best of 3) ==")
     rows = []
     for n in sizes:
         row = measure(n)

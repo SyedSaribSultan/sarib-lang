@@ -1,0 +1,8 @@
+# Lint gate (CI job `lint`). Pyflakes only: real defects (unused names, undefined names,
+# placeholder-less f-strings). Compact `import a, b` and `x; continue` lines are house
+# style — the conformance surface is budgeted in lines (G4, D-064) — so pycodestyle is off.
+target-version = "py39"
+extend-exclude = ["node_modules"]
+
+[lint]
+select = ["F"]

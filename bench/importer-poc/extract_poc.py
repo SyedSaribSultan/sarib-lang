@@ -16,7 +16,7 @@ Extractor    : local Ollama qwen2.5:7b, temperature 0.
 Output       : bench/importer-poc/proposals.jsonl  (+ rejects.jsonl)
 """
 from __future__ import annotations
-import json, re, sys, time, urllib.request, pathlib
+import json, re, sys, urllib.request, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SRC = ROOT / "decisions" / "decision-log.md"

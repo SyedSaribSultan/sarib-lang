@@ -49,7 +49,7 @@ if _envf.exists():
 sys.path.insert(0, str(ROOT / "impl"))
 sys.path.insert(0, str(ROOT / "bench" / "g2-corpus"))
 from sarib import parse, query as run_query          # noqa: E402
-from providers import available, PROVIDERS           # noqa: E402
+from providers import available           # noqa: E402
 
 CORPUS = ROOT / "bench" / "g2-corpus"
 RESULTS = CORPUS / "results"
@@ -172,7 +172,7 @@ def call_openai_compat(base: str, key: str | None, model: str, prompt: str,
                 print(f"    HTTP {e.code}, backoff {wait}s ({detail[:120]})")
                 time.sleep(wait); continue
             raise RuntimeError(f"HTTP {e.code}: {detail}") from e
-        except (urllib.error.URLError, TimeoutError) as e:
+        except (urllib.error.URLError, TimeoutError):
             if attempt < 8:
                 time.sleep(min(120, 2 ** (attempt + 1))); continue
             raise

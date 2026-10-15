@@ -199,7 +199,7 @@ def main() -> int:
     print(panel)
     (ROOT / "bench" / "headline.txt").write_text(ANSI_RE.sub("", panel) + "\n",
                                                 encoding="utf-8")
-    print(f"\nwrote bench/headline.txt")
+    print("\nwrote bench/headline.txt")
     return 0
 
 

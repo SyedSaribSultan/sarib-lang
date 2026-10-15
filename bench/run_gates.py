@@ -79,7 +79,7 @@ def main():
     op_tokens = tokens(json.dumps(op))
     ratio = 100 * op_tokens / kb_tokens
     g1 = ratio <= 1.0
-    report += [f"## G1 · Edit economy (target: op ≤1% of regeneration)",
+    report += ["## G1 · Edit economy (target: op ≤1% of regeneration)",
                f"- KB size: {kb_tokens} tokens ({len(doc.nodes)} nodes)",
                f"- One guarded point-edit op: {op_tokens} tokens",
                f"- **Ratio: {ratio:.2f}% → {'PASS' if g1 else 'FAIL'}**", ""]
@@ -108,7 +108,7 @@ def main():
                           if f.name not in CONFORMANCE | TRANSPORTS | CONSUMERS)
     loc, loc_tx, loc_consumer = by(CONFORMANCE), by(TRANSPORTS), by(CONSUMERS)
     g4 = loc <= 1000 and not unclassified      # a new file must be classified, not ignored
-    report += [f"## G4 · Implementability (target: ≤1000 LOC for the conformance surface)",
+    report += ["## G4 · Implementability (target: ≤1000 LOC for the conformance surface)",
                f"- **Conformance surface** (parser+canon+model+ops+query+render) — BUDGETED: "
                f"**{loc}** / 1000",
                f"- Transports (cli+mcp), reported not budgeted: {loc_tx} LOC — nothing in the "
@@ -136,12 +136,12 @@ def main():
         fold(d, list(perm))
         canons.add(canon(d))
     g5 = len(canons) == 1
-    report += [f"## G5 · Merge safety (SEC: any op order → same state; target: 1 state, 0 corruption)",
+    report += ["## G5 · Merge safety (SEC: any op order → same state; target: 1 state, 0 corruption)",
                f"- 4 concurrent ops × {24} permutations → **{len(canons)} distinct state(s) → {'PASS' if g5 else 'FAIL'}**", ""]
 
     # ---- G6: round-trip (corpus already enforces; re-assert on the big KB) ----
     g6 = canon(parse(fmt(parse(kb)))) == canon(parse(kb))
-    report += [f"## G6 · Lossless round-trip (surface→model→surface→model)",
+    report += ["## G6 · Lossless round-trip (surface→model→surface→model)",
                f"- 10k-token KB: **{'PASS' if g6 else 'FAIL'}** "
                f"(+ 6/6 corpus cases enforce this — `python impl/tests/run_corpus.py`)", ""]
 
@@ -159,7 +159,7 @@ def main():
     pct = 100 * common / len(b)
     changed = sum(1 for x, y in zip(b, a) if x != y) + abs(len(b) - len(a))
     g7 = pct >= 95 and 1 <= changed <= 2   # exactly the edited record must differ — 0 would be vacuous
-    report += [f"## G7 · Cache-prefix survival (edit near end of doc; target: long stable prefix, minimal diff)",
+    report += ["## G7 · Cache-prefix survival (edit near end of doc; target: long stable prefix, minimal diff)",
                f"- Canonical form: {len(b)} lines; stable prefix {common} lines ({pct:.1f}%); changed lines: {changed}",
                f"- **{'PASS' if g7 else 'FAIL'}**", ""]
 

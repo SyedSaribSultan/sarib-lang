@@ -71,6 +71,17 @@ jobs:
           sarib-preview p.sarib --stdout            | grep -q "sarib preview"
           python -m sarib.preview - --stdout < p.sarib | grep -q "<!doctype html"
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with: { python-version: "3.12" }
+      - name: ruff (pyflakes rules; config in ruff.toml)
+        run: |
+          pip install ruff==0.17.0
+          ruff check .
+
   gates:
     runs-on: ubuntu-latest
     steps:

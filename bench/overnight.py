@@ -9,7 +9,7 @@ Prints a timestamped progress line each pass; nothing is ever dropped.
 Run:  python bench/overnight.py           (defaults: 18 passes, 75 min apart)
 """
 from __future__ import annotations
-import json, pathlib, subprocess, sys, time
+import pathlib, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "bench" / "g2-corpus" / "results"

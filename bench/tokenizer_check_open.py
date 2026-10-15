@@ -129,7 +129,7 @@ def main() -> int:
     passed = not failures and distinct_ok
 
     hdr = [g["label"] for g in loaded]
-    L = [f"# G8 — open-weight tokenizer verification",
+    L = ["# G8 — open-weight tokenizer verification",
          "",
          f"**Date:** {datetime.date.today().isoformat()} · **Method:** "
          f"`bench/tokenizer_check_open.py` (HuggingFace `tokenizers`, tokenizer.json only) · "
@@ -189,8 +189,8 @@ def main() -> int:
              if not lb_exc else
              "single-token everywhere except " + "; ".join(lb_exc)
              + " — still inside the ≤2 criterion, and a bracket pair, not a semantic mark."),
-          f"2. **The attribute braces are cheaper here than on GPT models.** `{{.`/`{{#` cost 2 "
-          f"tokens on the GPT family; they cost 1 on "
+          "2. **The attribute braces are cheaper here than on GPT models.** `{.`/`{#` cost 2 "
+          "tokens on the GPT family; they cost 1 on "
           + (", ".join(brace_1) if brace_1 else "none of these") + ".",
           f"3. **Cost concentrates in content, not syntax.** `{date}` ranges from "
           f"{count(d_lo['tok'], date)} tokens ({d_lo['label']}) to {count(d_hi['tok'], date)} "
