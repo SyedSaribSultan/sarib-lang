@@ -22,7 +22,7 @@ dependencies = []
 
 [project.optional-dependencies]
 # The core is 3.9+ and dependency-free; the MCP server needs the `mcp` SDK, which is 3.10+.
-mcp = ["mcp>=1.0,<2"]   # requires Python >=3.10; 2.x renamed FastMCP (breaks the server)
+mcp = ["mcp>=1.0,<3"]   # requires Python >=3.10; 2.x renamed FastMCP (breaks the server)
 
 [project.scripts]
 sarib = "sarib.cli:main"
