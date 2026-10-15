@@ -1,0 +1,9 @@
+{"sarib":"0.1"}
+{"hint":"heading","id":"n1","kind":"node","order":0,"title":"Teams"}
+{"hint":"heading","id":"pl","kind":"node","order":0,"parent":"n1","title":"Platform"}
+{"hint":"heading","id":"r1","kind":"node","order":0,"parent":"pl","title":"Retro"}
+{"hint":"heading","id":"pa","kind":"node","order":1,"parent":"n1","title":"Payments"}
+{"hint":"heading","id":"r2","kind":"node","order":0,"parent":"pa","title":"Retro"}
+{"hint":"heading","id":"no","kind":"node","order":2,"parent":"n1","title":"Notes"}
+{"content":"Follow up from the [[Retro]].","hint":"prose","id":"n2","kind":"node","order":0,"parent":"no"}
+{"id":"e1","kind":"edge","source":"n2","target":"?unresolved:Retro","type":"relates-to"}

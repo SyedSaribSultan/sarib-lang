@@ -1,0 +1,13 @@
+# Release
+
+## Ship API {.task} ^t1
+
+Needs [depends-on:: [[Write docs]]] first.
+
+## Write docs {.task} ^t2
+
+Needs [depends-on:: [[Ship API]]] first.
+
+## Cut tag {.task} ^t3
+
+Needs [depends-on:: [[Ship API]]] first.

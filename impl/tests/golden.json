@@ -10728,6 +10728,60 @@
    "walk": "f84dabc72db8aba1",
    "walk_len": 6
   },
+  "corpus/07-duplicate-slug.sarib": {
+   "board": "01ba4719c80b6fe9",
+   "canon": "00fd9a9352fa70b8",
+   "diagnostics": [
+    "duplicate-slug: #plan on a1 and a2"
+   ],
+   "fmt": "c80d4f4265294a4a",
+   "invariants": [
+    "duplicate-slug: #plan on a1 and a2"
+   ],
+   "mermaid": "f131582e77bb6cbc",
+   "n_edges": 1,
+   "n_nodes": 4,
+   "outline": "f4ec56e61ae1ba00",
+   "preview": "9aec1ab1135e15e0",
+   "slugs": "355dbf9ef97bb881",
+   "walk": "b4f8ec92a4a190ad",
+   "walk_len": 4
+  },
+  "corpus/08-ambiguous-reference.sarib": {
+   "board": "01ba4719c80b6fe9",
+   "canon": "28555575d78c880e",
+   "diagnostics": [
+    "ambiguous-reference: 'Retro' from n2",
+    "unresolved-reference: 'Retro' from n2"
+   ],
+   "fmt": "f65ff25888d06fb6",
+   "invariants": [],
+   "mermaid": "95510e0f8842fe1c",
+   "n_edges": 1,
+   "n_nodes": 7,
+   "outline": "4e9e5a6df7f41947",
+   "preview": "21a9c4776d2a23d9",
+   "slugs": "e3b0c44298fc1c14",
+   "walk": "7966ad62f16f995b",
+   "walk_len": 7
+  },
+  "corpus/09-acyclic-cycle.sarib": {
+   "board": "da4254e2418528c9",
+   "canon": "509811f660d4fea5",
+   "diagnostics": [
+    "cycle-in-acyclic-edge: depends-on t1 -> t2 -> t1"
+   ],
+   "fmt": "19d036048128ca33",
+   "invariants": [],
+   "mermaid": "eada4ee598d85cc3",
+   "n_edges": 3,
+   "n_nodes": 7,
+   "outline": "310ca986ac998c38",
+   "preview": "8aad937ee61d8ec8",
+   "slugs": "e3b0c44298fc1c14",
+   "walk": "b4190c8719281981",
+   "walk_len": 7
+  },
   "dogfood/decision-log.sarib": {
    "board": "01ba4719c80b6fe9",
    "canon": "5fed29fa1c2ded09",

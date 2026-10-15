@@ -140,6 +140,39 @@ class Doc:
                 diags.append(f"invariant3: edge {e.id} dangling target {e.target}")
         return diags
 
+    def lint_cycles(self) -> list:
+        """cycle-in-acyclic-edge (Stage 11 §5, D-027): a lint, never a traversal precondition.
+        One report per back edge found by a DFS in sorted id order, so output is deterministic."""
+        diags, by_rel = [], {}
+        for eid in sorted(self.edges):
+            e = self.edges[eid]
+            if e.type in ACYCLIC and e.status == "active" and e.target in self.nodes:
+                by_rel.setdefault(e.type, {}).setdefault(anchor_owner(self, e.source), []).append(
+                    anchor_owner(self, e.target))              # same endpoints traversal uses
+        for rel in sorted(by_rel):
+            adj = by_rel[rel]
+            state: dict = {}                        # 1 = on the DFS path, 2 = finished
+            for root in sorted(adj):
+                if root in state:
+                    continue
+                path, stack = [root], [iter(adj.get(root, ()))]
+                state[root] = 1
+                while stack:
+                    nxt = next(stack[-1], None)
+                    if nxt is None:
+                        state[path.pop()] = 2
+                        stack.pop()
+                    elif state.get(nxt) == 1:
+                        cyc = path[path.index(nxt):] + [nxt]
+                        more = f" -> ... ({len(cyc) - 8} more)" if len(cyc) > 9 else ""
+                        diags.append(f"cycle-in-acyclic-edge: {rel} "
+                                     + " -> ".join(cyc[:8] if more else cyc) + more)
+                    elif nxt not in state:
+                        state[nxt] = 1
+                        path.append(nxt)
+                        stack.append(iter(adj.get(nxt, ())))
+        return diags
+
     # Op-time validation, scoped to the ids one op touched (D-065).
     # WHY LOCAL: a whole-document check after every op meant that a file which already
     # carried ANY unrelated violation — two headings sharing one {#slug}, say — rejected
@@ -164,6 +197,11 @@ class Doc:
             if hops > len(self.nodes):
                 diags.append(f"invariant2: containment cycle at {n.id}")
         return diags
+
+
+# Edge types whose algebra is declared acyclic (Stage 5 §3.2; `contains` is the tree itself).
+ACYCLIC = frozenset({"transcludes", "depends-on", "refines", "part-of", "supersedes",
+                     "merged-into", "split-from"})
 
 
 def anchor_owner(doc: "Doc", nid: str) -> str:

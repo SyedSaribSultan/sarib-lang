@@ -1,0 +1,1 @@
+cycle-in-acyclic-edge: depends-on t1 -> t2 -> t1

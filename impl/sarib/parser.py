@@ -229,4 +229,5 @@ def parse(src: str) -> Doc:
 
     doc.touch()          # edges were added after the slug lookups built the index
     doc.diagnostics.extend(doc.check_invariants())
+    doc.diagnostics.extend(doc.lint_cycles())
     return doc
