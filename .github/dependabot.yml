@@ -4,17 +4,21 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     groups:
       actions: { patterns: ["*"] }
   # The pinned tokenizer the freeze gates measure with (package.json + lockfile at the root).
   - package-ecosystem: npm
     directory: /
     schedule: { interval: monthly }
+    groups:
+      npm: { patterns: ["*"] }
   # impl/pyproject.toml: the core has no runtime deps; this watches the `mcp` extra.
   - package-ecosystem: pip
     directory: /impl
     schedule: { interval: monthly }
+    groups:
+      pip: { patterns: ["*"] }
     # mcp 2.x breaks sarib-mcp; the extra is capped <2 until the server is ported.
     ignore:
       - dependency-name: mcp
